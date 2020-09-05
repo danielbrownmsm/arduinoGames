@@ -38,6 +38,10 @@ bool gol_board[8][8];
 bool prev_board[8][8];
 bool runningSim = false;
 int numNeighbors;
+int minusColumn;
+int plusColumn;
+int minusRow;
+int plusRow;
 
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
@@ -62,75 +66,110 @@ void setup() {
 }
 
 void loop() {
-  while (!runningSim) {
-    memcpy(prev_board, gol_board, 8); // 8 long, this is how you copy arrays (no direct assignment) in Arduino
+  if (!runningSim) {
+    while (!runningSim) {
+      blinkState = !blinkState;
 
-    Serial.println(x);
-    Serial.println(y);
-
-    blinkState = !blinkState;
-
-    for (int i = 0; i < 8; i++) {
-      matrix.setRow(0, i, world[i]);
-    }
-    int temp_y = map(y, 0, 7, 7, 0); // b/c array goes from 0...7 while bytes go 7...0 because you start at Least Significatn Byte which is on the right
-    matrix.setLed(0, x, temp_y, blinkState);
-
-    x_val = analogRead(xPin);
-    if (x_val > 700 and x < 7) {
-      x += 1;
-    }
-    else if (x_val < 300 and x > 0) {
-      x -= 1;
-    }
-
-    y_val = analogRead(yPin);
-    if (y_val > 700 and y < 7) {
-      y += 1;
-    }
-    else if (y_val < 300 and y > 0) {
-      y -= 1;
-    }
-
-    buttonVal = digitalRead(buttonPin);
-    if (buttonVal == LOW) {
-      if (lastState == HIGH) {
-        lastState = LOW;
-        lastTime = millis();
+      for (int i = 0; i < 8; i++) {
+        matrix.setRow(0, i, world[i]);
       }
-      currTime = millis();
+      int temp_y = map(y, 0, 7, 7, 0); // b/c array goes from 0...7 while bytes go 7...0 because you start at Least Significatn Byte which is on the right
+      matrix.setLed(0, x, temp_y, blinkState);
 
-      if (currTime - lastTime > longPressThreshold) { // if long press
-        runningSim = true; // start the simulation
+      x_val = analogRead(xPin);
+      if (x_val > 700 and x < 7) {
+        x += 1;
+      }
+      else if (x_val < 300 and x > 0) {
+        x -= 1;
       }
 
-      bitWrite(world[x], y, (bitRead(world[x], y) ^ 1)); // toggle the bit at that loc
-    }
-    else if (buttonVal == HIGH) {
-      lastState = HIGH;
-    }
+      y_val = analogRead(yPin);
+      if (y_val > 700 and y < 7) {
+        y += 1;
+      }
+      else if (y_val < 300 and y > 0) {
+        y -= 1;
+      }
 
-    prev_x = x;
-    prev_y = y;
+      buttonVal = digitalRead(buttonPin);
+      if (buttonVal == LOW) {
+        if (lastState == HIGH) {
+          lastState = LOW;
+          lastTime = millis();
+        }
+        currTime = millis();
 
-    delay(200);
+        if (currTime - lastTime > longPressThreshold) { // if long press
+          runningSim = true; // start the simulation
+        }
+
+        bitWrite(world[x], y, (bitRead(world[x], y) ^ 1)); // toggle the bit at that loc
+      }
+      else if (buttonVal == HIGH) {
+        lastState = HIGH;
+      }
+
+      prev_x = x;
+      prev_y = y;
+
+      delay(200);
+    }
+  }
+
+
+  for (int x = 0; x < 8; x++) {
+    for (int y = 0; y < 8; y++) {
+      gol_board[x][y] = world[x][bitRead(world[x], map(y, 0, 7, 7, 0))];
+      prev_board[x][y] = gol_board[x][y];
+      bitWrite(world[x], map(y, 0, 7, 7, 0), gol_board[x][y]);
+    }
+  }
+
+  for (int j = 0; j < 8; j++) {
+    matrix.setRow(0, j, world[j]);
   }
 
   for (int row = 0; row < 8; row++) { // for each row
     for (int column = 0; column < 8; column++ ) {
       int numNeighbors = 0;
-      numNeighbors += prev_board[row - 1][column - 1];
-      numNeighbors += prev_board[row - 1][column];
-      numNeighbors += prev_board[row - 1][column + 1];
+      if (column == 0) {
+        minusColumn = -7;
+      } else {
+        minusColumn = 1;
+      }
 
-      numNeighbors += prev_board[row][column - 1];
+      if (column == 7) {
+        plusColumn = -7;
+      } else {
+        plusColumn = 1;
+      }
+
+      if (row == 7) {
+        plusRow = -7;
+      } else {
+        plusRow = 1;
+      }
+
+      if (row == 0) {
+        minusRow = -7;
+      } else {
+        minusRow = 1;
+      }
+
+
+      numNeighbors += prev_board[row - minusRow][column - minusColumn];
+      numNeighbors += prev_board[row - minusRow][column];
+      numNeighbors += prev_board[row - minusRow][column + plusColumn];
+
+      numNeighbors += prev_board[row][column - minusColumn];
       //numNeighbors += prev_board[row][column]; // (self)
-      numNeighbors += prev_board[row][column + 1];
+      numNeighbors += prev_board[row][column + plusColumn];
 
-      numNeighbors += prev_board[row + 1][column - 1];
-      numNeighbors += prev_board[row + 1][column];
-      numNeighbors += prev_board[row + 1][column + 1];
-
+      numNeighbors += prev_board[row + plusRow][column - minusColumn];
+      numNeighbors += prev_board[row + plusRow][column];
+      numNeighbors += prev_board[row + plusRow][column + plusColumn];
+      
       if (numNeighbors < 2 or numNeighbors > 3) { // if it doesn't have 2-3 neighbors
         gol_board[row][column] = false; // it dies
       } else { // else they continue living / are born
@@ -138,4 +177,5 @@ void loop() {
       }
     }
   }
+  delay(200);
 }
