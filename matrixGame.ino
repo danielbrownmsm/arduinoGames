@@ -15,6 +15,8 @@ int clkPin = 10;
 // Joystick
 int x_val;
 int y_val;
+int highThreshold = 800;
+int lowThreshold = 200;
 int x = 1;
 int y = 1;
 int prev_x = 0;
@@ -25,7 +27,7 @@ bool lastState;
 unsigned long lastTime;
 unsigned long currTime;
 
-byte world[] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
+byte screen[] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
 
 // Tic-Tac-Toe / Knots + Crosses
 int ticTacToeBoard[] = {0, 0, 0, 0, 0 , 0, 0, 0, 0};
@@ -34,8 +36,8 @@ int columnSize = 3;
 bool blinkState = true;
 
 // Game of Life
-bool gol_board[8][8];
-bool prev_board[8][8];
+byte gol_board[] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
+byte prev_board[] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
 bool runningSim = false;
 int numNeighbors;
 int minusColumn;
@@ -70,25 +72,22 @@ void loop() {
     while (!runningSim) {
       blinkState = !blinkState;
 
-      for (int i = 0; i < 8; i++) {
-        matrix.setRow(0, i, world[i]);
-      }
-      int temp_y = map(y, 0, 7, 7, 0); // b/c array goes from 0...7 while bytes go 7...0 because you start at Least Significatn Byte which is on the right
-      matrix.setLed(0, x, temp_y, blinkState);
+      flipScreen(matrix, screen);
+      matrix.setLed(0, x, map(y, 0, 7, 7, 0), blinkState); // map b/c y is 0...7 while bytes is 7...0 (read from left to right)
 
       x_val = analogRead(xPin);
-      if (x_val > 700 and x < 7) {
+      if (x_val > highThreshold and x < 7) {
         x += 1;
       }
-      else if (x_val < 300 and x > 0) {
+      else if (x_val < lowThreshold and x > 0) {
         x -= 1;
       }
 
       y_val = analogRead(yPin);
-      if (y_val > 700 and y < 7) {
+      if (y_val > highThreshold and y < 7) {
         y += 1;
       }
-      else if (y_val < 300 and y > 0) {
+      else if (lowThreshold < 300 and y > 0) {
         y -= 1;
       }
 
@@ -104,9 +103,9 @@ void loop() {
           runningSim = true; // start the simulation
         }
 
-        bitWrite(world[x], y, (bitRead(world[x], y) ^ 1)); // toggle the bit at that loc
+        bitWrite(screen[x], y, (bitRead(screen[x], y) ^ 1)); // toggle the bit at that loc
       }
-      else if (buttonVal == HIGH) {
+      else {
         lastState = HIGH;
       }
 
@@ -117,18 +116,18 @@ void loop() {
     }
   }
 
-
+  /**
+   * TODO: FIX THIS!
+  */
   for (int x = 0; x < 8; x++) {
     for (int y = 0; y < 8; y++) {
-      gol_board[x][y] = world[x][bitRead(world[x], map(y, 0, 7, 7, 0))];
+      gol_board[x][y] = screen[x][bitRead(screen[x], map(y, 0, 7, 7, 0))];
       prev_board[x][y] = gol_board[x][y];
-      bitWrite(world[x], map(y, 0, 7, 7, 0), gol_board[x][y]);
+      bitWrite(screen[x], map(y, 0, 7, 7, 0), gol_board[x][y]);
     }
   }
 
-  for (int j = 0; j < 8; j++) {
-    matrix.setRow(0, j, world[j]);
-  }
+  flipDisplay(matrix, screen);
 
   for (int row = 0; row < 8; row++) { // for each row
     for (int column = 0; column < 8; column++ ) {
@@ -178,4 +177,10 @@ void loop() {
     }
   }
   delay(200);
+}
+
+void flipDisplay(LedControl matrix, byte[] screen) {
+  for (int i = 0; i < 8; i++) {
+    matrix.setRow(0, i, screen[i]);
+  }
 }
