@@ -157,9 +157,8 @@ void loop() {
       numNeighbors += bitRead(prev_board[row] + plusRow, column - minusColumn);
       numNeighbors += bitRead(prev_board[row] + plusRow, column);
       numNeighbors += bitRead(prev_board[row] + plusRow, column + plusColumn);
-      Serial.println(numNeighbors);
       
-      if (numNeighbors > 2 and numNeighbors < 3) { // if it has 2-3 neighbors
+      if (numNeighbors > 1 and numNeighbors < 4) { // if it has 2-3 neighbors
         if (numNeighbors == 3) {
           bitSet(gol_board[row], column); // it is born if it has 3
         }
@@ -171,5 +170,5 @@ void loop() {
       }
     }
   }
-  delay(1000);
+  delay(500);
 }
