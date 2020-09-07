@@ -2,25 +2,25 @@
 
 #define xPin A0
 #define yPin A1
-int buttonPin = 6;
+const int buttonPin = 6;
 
 // Buzzer
-int buzzerPin = 7;
+const int buzzerPin = 7;
 
 // LED Matrix
-int dinPin = 8;
-int csPin = 9;
-int clkPin = 10;
+const int dinPin = 8;
+const int csPin = 9;
+const int clkPin = 10;
 
 // Joystick
 int x_val;
 int y_val;
-int highThreshold = 800;
-int lowThreshold = 200;
+const int highThreshold = 800;
+const int lowThreshold = 200;
 int x = 1;
 int y = 1;
 int buttonVal;
-unsigned int longPressThreshold = 1000;
+const unsigned int longPressThreshold = 1000;
 bool lastState;
 unsigned long lastTime;
 unsigned long currTime;
@@ -77,10 +77,11 @@ void loop() {
     memcpy(screen, gol_board, sizeof(gol_board)) // move world data to screen
     flipDisplay(matrix, screen); // flip
     matrix.setLed(0, x, byteToXY(y), blinkState); // map b/c y is 0...7 while bytes is 7...0 (read from left to right)
-
+    
+    // get joystick vals
     x_val = analogRead(xPin);
     if (x_val > highThreshold and x < 7) {
-      x += 1;
+      x += 1; // update accordingly
     } else if (x_val < lowThreshold and x > 0) {
       x -= 1;
     }
