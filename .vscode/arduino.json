@@ -2,5 +2,6 @@
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
     "sketch": "matrixGame.ino",
-    "programmer": "AVR ISP"
+    "programmer": "AVR ISP",
+    "port": "COM3"
 }

@@ -4,7 +4,7 @@
 #define yPin A1
 const int buttonPin = 6;
 
-// Buzzer
+// Buzzer (not currently used)
 const int buzzerPin = 7;
 
 // LED Matrix
@@ -12,7 +12,7 @@ const int dinPin = 8;
 const int csPin = 9;
 const int clkPin = 10;
 
-// Joystick
+// Joystick + random
 int x_val;
 int y_val;
 const int highThreshold = 800;
@@ -40,12 +40,6 @@ int plusRow;
 
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
-void flipDisplay(LedControl matrix, byte screen[]) {
-  for (int i = 0; i < 8; i++) {
-    matrix.setRow(0, i, screen[i]);
-  }
-}
-
 void setup() {
   Serial.begin(9600);
 
@@ -57,25 +51,27 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
 
-  matrix.shutdown(0, false);
-  matrix.setIntensity(0, 0);
+  matrix.shutdown(0, false); // 0 is adr of matrix, because LedControl can be used to control up to 8 matrix-es
+  matrix.setIntensity(0, 0); // b/c LEDs can be _very_ brigt (and also draw current)
   matrix.clearDisplay(0);
 
-  // really temp-temp
+  // really temp-temp (b/c other games might need diff x/y start vals
   x = 4;
   y = 4;
 }
 
-int byteToXY(int val) {
+int byteToXY(int val) { // really I would say Cartesian but who has space to write that?
   return map(val, 0, 7, 7, 0);
 }
 
 void loop() {
-  while (!runningSim) {
+  while (!runningSim) { // before we are running the game and are still setting up
     blinkState = !blinkState; // toggle the blinking LED
 
     memcpy(screen, gol_board, sizeof(gol_board)); // move world data to screen
-    flipDisplay(matrix, screen); // flip
+    for (int i = 0; i < 8; i++) {
+      matrix.setRow(0, i, screen[i]); // flip
+    }
     matrix.setLed(0, x, byteToXY(y), blinkState); // map b/c y is 0...7 while bytes is 7...0 (read from left to right)
     
     // get joystick vals
@@ -89,12 +85,12 @@ void loop() {
     y_val = analogRead(yPin);
     if (y_val > highThreshold and y < 7) {
       y += 1;
-    } else if (lowThreshold < 300 and y > 0) {
+    } else if (y_val < lowThreshold and y > 0) {
       y -= 1;
     }
 
     buttonVal = digitalRead(buttonPin);
-    if (buttonVal == LOW) {
+    if (buttonVal == LOW) { // this is for figuring out if it is a long or short press
       if (lastState == HIGH) {
         lastState = LOW;
         lastTime = millis();
@@ -103,6 +99,7 @@ void loop() {
 
       if (currTime - lastTime > longPressThreshold) { // if long press
         runningSim = true; // start the simulation
+        continue; // we don't want to toggle the bit at the location of the long press
       }
 
       bitWrite(gol_board[x], y, (bitRead(gol_board[x], y) ^ 1)); // toggle the bit at that loc
@@ -112,11 +109,19 @@ void loop() {
     delay(200);
   }
 
-  flipDisplay(matrix, screen);
-
+  memcpy(screen, gol_board, sizeof(gol_board)); // move world data to screen
+  memcpy(prev_board, gol_board, sizeof(gol_board)); // archive world data (basically not really)
+  for (int i = 0; i < 8; i++) { // flip
+    matrix.setRow(0, i, screen[i]);
+  }
+  
   for (int row = 0; row < 8; row++) { // for each row
     for (int column = 0; column < 8; column++ ) {
       int numNeighbors = 0;
+
+      /** plus/minus column/row is for edges so it wraps around. I may have not implemented it right though.
+       * World is supposed to be a torus
+       */
       if (column == 0) {
         minusColumn = -7;
       } else {
@@ -152,16 +157,19 @@ void loop() {
       numNeighbors += bitRead(prev_board[row] + plusRow, column - minusColumn);
       numNeighbors += bitRead(prev_board[row] + plusRow, column);
       numNeighbors += bitRead(prev_board[row] + plusRow, column + plusColumn);
-
-      if (numNeighbors > 2 and numNeighbors < 3) { // if it doesn't have 2-3 neighbors
+      Serial.println(numNeighbors);
+      
+      if (numNeighbors > 2 and numNeighbors < 3) { // if it has 2-3 neighbors
         if (numNeighbors == 3) {
           bitSet(gol_board[row], column); // it is born if it has 3
         }
+        Serial.println(row);
+        Serial.print(column);
         // otherwise (for nested if) nothing happens (keeps state)
       } else { // else they continue living / are born
         bitClear(gol_board[row], column); // it dies
       }
     }
   }
-  delay(200);
+  delay(1000);
 }
