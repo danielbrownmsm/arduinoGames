@@ -157,13 +157,11 @@ void loop() {
       numNeighbors += bitRead(prev_board[row] + plusRow, column - minusColumn);
       numNeighbors += bitRead(prev_board[row] + plusRow, column);
       numNeighbors += bitRead(prev_board[row] + plusRow, column + plusColumn);
-      
+            
       if (numNeighbors > 1 and numNeighbors < 4) { // if it has 2-3 neighbors
         if (numNeighbors == 3) {
           bitSet(gol_board[row], column); // it is born if it has 3
         }
-        Serial.println(row);
-        Serial.print(column);
         // otherwise (for nested if) nothing happens (keeps state)
       } else { // else they continue living / are born
         bitClear(gol_board[row], column); // it dies
