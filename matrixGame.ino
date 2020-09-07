@@ -66,7 +66,7 @@ void setup() {
   y = 4;
 }
 
-void byteToXY(int val) {
+int byteToXY(int val) {
   return map(val, 0, 7, 7, 0);
 }
 
@@ -74,7 +74,7 @@ void loop() {
   while (!runningSim) {
     blinkState = !blinkState; // toggle the blinking LED
 
-    memcpy(screen, gol_board, sizeof(gol_board)) // move world data to screen
+    memcpy(screen, gol_board, sizeof(gol_board)); // move world data to screen
     flipDisplay(matrix, screen); // flip
     matrix.setLed(0, x, byteToXY(y), blinkState); // map b/c y is 0...7 while bytes is 7...0 (read from left to right)
     
@@ -112,14 +112,6 @@ void loop() {
     delay(200);
   }
 
-/*  for (int x = 0; x < 8; x++) {
-    for (int y = 0; y < 8; y++) {
-      gol_board[x][y] = screen[x][bitRead(screen[x], map(y, 0, 7, 7, 0))];
-      prev_board[x][y] = gol_board[x][y];
-      bitWrite(screen[x], byteToXY(y), gol_board[x][y]);
-    }
-  }*/
-
   flipDisplay(matrix, screen);
 
   for (int row = 0; row < 8; row++) { // for each row
@@ -150,22 +142,24 @@ void loop() {
       }
 
 
-      numNeighbors += prev_board[row - minusRow][column - minusColumn];
-      numNeighbors += prev_board[row - minusRow][column];
-      numNeighbors += prev_board[row - minusRow][column + plusColumn];
+      numNeighbors += bitRead(prev_board[row - minusRow], column - minusColumn);
+      numNeighbors += bitRead(prev_board[row - minusRow], column);
+      numNeighbors += bitRead(prev_board[row - minusRow], column + plusColumn);
 
-      numNeighbors += prev_board[row][column - minusColumn];
-      //numNeighbors += prev_board[row][column]; // (self)
-      numNeighbors += prev_board[row][column + plusColumn];
+      numNeighbors += bitRead(prev_board[row], column - minusColumn);
+      numNeighbors += bitRead(prev_board[row], column + plusColumn);
 
-      numNeighbors += prev_board[row + plusRow][column - minusColumn];
-      numNeighbors += prev_board[row + plusRow][column];
-      numNeighbors += prev_board[row + plusRow][column + plusColumn];
+      numNeighbors += bitRead(prev_board[row] + plusRow, column - minusColumn);
+      numNeighbors += bitRead(prev_board[row] + plusRow, column);
+      numNeighbors += bitRead(prev_board[row] + plusRow, column + plusColumn);
 
-      if (numNeighbors < 2 or numNeighbors > 3) { // if it doesn't have 2-3 neighbors
-        gol_board[row][column] = false; // it dies
+      if (numNeighbors > 2 and numNeighbors < 3) { // if it doesn't have 2-3 neighbors
+        if (numNeighbors == 3) {
+          bitSet(gol_board[row], column); // it is born if it has 3
+        }
+        // otherwise (for nested if) nothing happens (keeps state)
       } else { // else they continue living / are born
-        gol_board[row][column] = true; // it is born/continues living
+        bitClear(gol_board[row], column); // it dies
       }
     }
   }
