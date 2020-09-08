@@ -1,9 +1,11 @@
 # arduinoGames
 programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, and a jostick with button. Support for a passive buzzer for sound feedback coming soon
 
-# List of Games
-Currently none, seeing as nothing is finished. A of programs that may or may not be implemented includes:
+# List of Somewhat Complete Games
  * Conway's Game of Life
+ * 21/Blackjack
+
+# List of Programs That May or May Not be Implemented
  * Pong
  * Paint
  * Tower Stack Blocks (like the ones you would see at an arcade)
@@ -16,7 +18,6 @@ Currently none, seeing as nothing is finished. A of programs that may or may not
  * Tic Tac Toe/Knots and Crosses
  * Tetris (if I get it working right)
  * Breakout
- * 21 / Blackjack
  * Yahtzee
  * Reaction-timer
  * Calculator
