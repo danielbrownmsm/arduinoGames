@@ -65,7 +65,7 @@ byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
                     {B00000111, B00000101, B00000101, B00000101, B00000111}}; // everything at it's index
 
 // menu
-String game = "gol";
+String game = "21";
 
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
@@ -200,49 +200,26 @@ void loop() {
   }
   else if (game == "21") {
     // do blackjack here
+    matrix.clearDisplay(0);
     p_total = random(1, 10);
-    p_total += random(1, 10);
-    
-    int onesDigit = p_total % 10;
-    int tensDigit = (p_total / 10) % 10; // because result is int it removes stuff after decimal
-    for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
-      matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) & digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
-    }
-
-    delay(1000);
-
-    // check hit or stay
-    while (!decided) {
-      y_val = analogRead(yPin);
-      if (y_val > highThreshold and y < 1) {
-        y += 1; // update accordingly
-      } else if (y_val < lowThreshold and y > 0) {
-        y -= 1;
-      }
-
-      if (y == 1) {
-        for (int i = 0; i < 8; i++) {
-          matrix.setRow(0, i, plusSign[i]);
-        }
-      } else {
-        for (int i = 0; i < 8; i++) {
-          matrix.setRow(0, i, minusSign[i]);
-        }
-      }
-
-      decided = digitalRead(buttonPin); // dang you can write stuff short!
-      hit = y == 1; // if y is one then yes hit otherwise no
-    }
+    hit = true;
+    decided = false;
 
     while (hit) {
       p_total += random(1, 10);
       int onesDigit = p_total % 10;
       int tensDigit = (p_total / 10) % 10; // because result is int it removes stuff after decimal
       for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
-        matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) & digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
+        matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
       }
-      
+
       decided = false;
+      while(!decided) {
+        decided = !digitalRead(buttonPin);
+        delay(300);
+      }
+      decided = false;
+      
       // check hit or stay
       while (!decided) {
         y_val = analogRead(yPin);
@@ -262,25 +239,17 @@ void loop() {
           }
         }
 
-        decided = digitalRead(buttonPin); // dang you can write stuff short!
-        hit = y == 1; // if y is one then yes hit otherwise no
-      }
-
-      if (p_total > 21) {
-        for (int i = 0; i < 8; i++) {
-          matrix.setRow(0, i, sad[i]);
-        }
-        break;
+        decided = !digitalRead(buttonPin); // dang you can write stuff short!
+        hit = (y == 1); // if y is one then yes hit otherwise no
       }
     }
 
-    c_total = random(1, 10);
-    c_total += random(1, 10);
-    
+    c_total = random(1, 10) + random(1, 10);
     while (c_total < c_threshold) {
       c_total += random(1, 10); // computer hits if below its threshold
     }
-    if (c_total > 21 || p_total > c_total) {
+
+    if ((c_total > 21 || p_total > c_total) && p_total < 22) {
       for (int i = 0; i < 8; i++) {
         matrix.setRow(0, i, happy[i]);
       }
@@ -288,6 +257,7 @@ void loop() {
       for (int i = 0; i < 8; i++) {
         matrix.setRow(0, i, sad[i]);
       }
-     }
+    }
+    delay(2000);
   }
 }
