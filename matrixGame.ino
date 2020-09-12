@@ -52,6 +52,16 @@ byte minusSign[8] = {B00000000, B00000000, B00000000, B01111110, B01111110, B000
 byte happy[8] = {B00000000, B01100110, B01100110, B00000000, B00000000, B01000010, B00111100, B00000000}; // happy face
 byte sad[8] = {B00000000, B01100110, B01100110, B00000000, B00000000, B00111100, B01000010, B00000000}; // sad face
 
+// tower stack blocks
+byte lastLevel = B011111110;
+byte newLevel;
+byte tower[7] = {};
+int write_loc = 0;
+int read_loc = 0;
+int tower_x = 0;
+int tower_y = 0;
+int direction = 0;
+
 // numerals
 byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
                     {B00000001, B00000011, B00000001, B00000001, B00000001}, 
@@ -259,5 +269,25 @@ void loop() {
       }
     }
     delay(2000);
+  }
+  else if (game == "stac") {
+    if(!digitalRead(buttonPin)) { // if button press
+      new_level = tower[tower_y] & tower[tower_y + 1]; // new level is then what the heck am I doing?
+    }
+
+    if (direction == 1) {
+      if (!bitRead(tower[tower_y], byteToXY(0))) { // if we're not at the edge
+        tower[tower_y] = tower[tower_y] << 1; // move it left
+      } else { // else we're at the edge
+        direction = 0;
+      }
+    } else {
+      if (!bitRead(tower[tower_y], byteToXY(7))) { // and then repeat everything
+        tower[tower_y] = tower[tower_y] >> 1;
+      } else {
+        direction = 1;
+      }
+    }
+    delay(100);
   }
 }
