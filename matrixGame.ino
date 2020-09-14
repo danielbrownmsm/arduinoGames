@@ -134,7 +134,7 @@ void setup() {
   matrix.setIntensity(0, 0); // b/c LEDs can be _very_ brigt (and also draw current)
   matrix.clearDisplay(0);
 
-  randomSeed(analogRead(5)); // seed PRNG with floating pin (unless it needs to be pin A5? (not to be confused with @55/A$$))
+  randomSeed(analogRead(5)); // seed PRNG with floating pin (unless it needs to be pin A5? and not just 5 (not to be confused with @55/A$$))
 }
 
 int byteToXY(int val) { // really I would say Cartesian but who has space to write that?
@@ -381,7 +381,19 @@ void loop() {
   }
   else if (game == "pong") { // https://gamedev.stackexchange.com/questions/4253/
     while (1) {
-
+      y_val = analogRead(yPin);
+      if (y_val > highThreshold and y < 6) {
+        y += 1;
+      } else if (y_val < lowThreshold and y > 1) {
+        y -= 1;
+      }
+      
+      bitSet(world[i], y);
+      bitSet(world[i], y-1);
+      bitSet(world[i], y+1);
+      
+      for (int i = 0; i < 8; i++) {
+        matrix.setRow(0, i, world[i]);
     }
   }
 }
