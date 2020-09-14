@@ -58,7 +58,11 @@ int tower_y = 0;
 int direction = 0;
 unsigned long waitTime = 100;
 int score = 0;
-bool breakLoop = false;
+
+// pong
+// use already declared byte screen
+int x_vel;
+int y_vel;
 
 // numerals
 byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
@@ -328,7 +332,8 @@ void loop() {
     delay(2000);
   }
   else if (game == "stac") {
-    while(!breakLoop) {
+    delay(100); // wait a bit so button press for selection isn't counted as button press for stacking
+    while(1) {
       if (millis() - lastTime > waitTime) {
         lastTime = millis();
         if (direction == 1) {
@@ -363,8 +368,8 @@ void loop() {
           for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
             matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
           }
-          breakLoop = true; // you lose boo hoo
-          // display score here somewhere. Use blackjack method?
+          //breakLoop = true; // you lose boo hoo
+          break;
         }
         score++;
 
@@ -378,9 +383,25 @@ void loop() {
       }
       delay(50);
     }
+    tower = {B00111111, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
+    tower_y = 0;
+    score = 0;
   }
   else if (game == "pong") { // https://gamedev.stackexchange.com/questions/4253/
+    x = 4; // yeah x and y are misleading they refer to the opposite of what they currently represent but
+    y = 4; // it's too late now... *shrug*
+    y_vel = 1;
     while (1) {
+      x += x_vel;
+      y += y_vel;
+      if (bitRead(screen[x+x_vel], y+y_vel)) { // if the ball will be at the same pos as a paddle
+        y_vel *= -1; // bounce
+      }
+
+      if (x+x_vel < 0 || x+x_vel > 7) { // if the ball will go off screen
+        x_vel *= -1; // bounce
+      }
+      
       y_val = analogRead(yPin);
       if (y_val > highThreshold and y < 6) {
         y += 1;
@@ -388,12 +409,17 @@ void loop() {
         y -= 1;
       }
       
-      bitSet(world[i], y);
-      bitSet(world[i], y-1);
-      bitSet(world[i], y+1);
+      // elif ball collides with side walls:
+      // give points
+      // start anew with ball starting in direction of last loser
+
+      bitSet(screen[x+1], y);
+      bitSet(screen[x], y);
+      bitSet(screen[x-1], y);
       
       for (int i = 0; i < 8; i++) {
-        matrix.setRow(0, i, world[i]);
+        matrix.setRow(0, i, screen[i]);
+      }
     }
   }
 }
