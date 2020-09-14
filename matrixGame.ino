@@ -71,9 +71,51 @@ byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
                     {B00000111, B00000001, B00000010, B00000010, B00000100}, 
                     {B00000111, B00000101, B00000111, B00000101, B00000111}, 
                     {B00000111, B00000101, B00000101, B00000101, B00000111}}; // everything at it's index
+byte gol_icon[8] = {
+  B11000000,
+  B10000100,
+  B00000010,
+  B00001110,
+  B00000000,
+  B00000000,
+  B11000000,
+  B11000000,
+};
+byte blackjack_icon[8] = {
+  B00000000,
+  B01110001,
+  B00010011,
+  B01110001,
+  B01000001,
+  B01110001,
+  B00000000,
+  B11111111,
+};
+byte tower_icon[8] = {
+  B00000000,
+  B00011000,
+  B00011100,
+  B00111100,
+  B00111100,
+  B01111100,
+  B01111110,
+  B01111110,
+};
+byte pong_icon[8] = {
+  B00000000,
+  B10000000,
+  B10000000,
+  B10010000,
+  B00000001,
+  B00000001,
+  B00000001,
+  B00000000,
+};
 
 // menu
-String game = "stac";
+String game = "none";
+String games[] = {"gol", "21", "stac", "pong"};
+byte *icons[8] = {gol_icon, blackjack_icon, tower_icon, pong_icon};
 
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
@@ -100,6 +142,23 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 }
 
 void loop() {
+  // menu
+  while (!decided) {
+    decided = !digitalRead(buttonPin);
+    game = games[y];
+
+    y_val = analogRead(yPin);
+    if (y_val > highThreshold and y < 3) {
+      y += 1;
+    } else if (y_val < lowThreshold and y > 0) {
+      y -= 1;
+    }
+
+    for (int i = 0; i < 8; i++) {
+      matrix.setRow(0, i, icons[y][i]);
+    }
+    delay(100);
+  }
   if (game == "gol") {
     while (!runningSim) { // before we are running the game and are still setting up
       blinkState = !blinkState; // toggle the blinking LED
