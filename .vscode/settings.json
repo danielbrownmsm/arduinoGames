@@ -1,0 +1,6 @@
+{
+    "arduino.defaultBaudRate": 9600,
+    "files.associations": {
+        "chrono": "cpp"
+    }
+}
