@@ -39,11 +39,11 @@ int minusRow;
 int plusRow;
 
 // blackjack
-int p_total = 0;
+int p_total = random(1, 10);
 int c_total = 0;
 int c_threshold = 17;
 long newCard = 0;
-bool hit = false;
+bool hit = true;
 bool decided = false;
 
 // symbols
@@ -61,8 +61,11 @@ int score = 0;
 
 // pong
 // use already declared byte screen
-int x_vel;
-int y_vel;
+int x_vel = 0;
+int y_vel = 1;
+int ball_x = 0;
+int ball_y = 0;
+int prev_y = 0;
 
 // numerals
 byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
@@ -113,6 +116,16 @@ byte pong_icon[8] = {
   B00000001,
   B00000001,
   B00000001,
+  B00000000,
+};
+byte settings_icon[8] = {
+  B00000000,
+  B00000000,
+  B00000000,
+  B00000000,
+  B00000000,
+  B00000000,
+  B00000000,
   B00000000,
 };
 
@@ -269,14 +282,9 @@ void loop() {
     }
     delay(500);
   }
-  else if (game == "21") {
-    // do blackjack here
-    matrix.clearDisplay(0);
-    p_total = random(1, 10);
-    hit = true;
-    decided = false;
-
+  else if (game == "21") { // do blackjack here
     while (hit) {
+      matrix.clearDisplay(0);
       p_total += random(1, 10);
       int onesDigit = p_total % 10;
       int tensDigit = (p_total / 10) % 10; // because result is int it removes stuff after decimal
@@ -287,7 +295,7 @@ void loop() {
       decided = false;
       while(!decided) {
         decided = !digitalRead(buttonPin);
-        delay(300);
+        delay(500);
       }
       decided = false;
       
@@ -329,7 +337,9 @@ void loop() {
         matrix.setRow(0, i, sad[i]);
       }
     }
-    delay(2000);
+    delay(2000); // so they can see the result
+    hit = true; // continue playing
+    p_total = random(1, 10);
   }
   else if (game == "stac") {
     delay(100); // wait a bit so button press for selection isn't counted as button press for stacking
@@ -383,23 +393,23 @@ void loop() {
       }
       delay(50);
     }
-    tower = {B00111111, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
+    delay(1000); // wait so they can see the score
+    byte inital[7] = {B00111111, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
+    memcpy(tower, inital, sizeof tower);
     tower_y = 0;
     score = 0;
   }
   else if (game == "pong") { // https://gamedev.stackexchange.com/questions/4253/
-    x = 4; // yeah x and y are misleading they refer to the opposite of what they currently represent but
-    y = 4; // it's too late now... *shrug*
-    y_vel = 1;
+    x = 0;
     while (1) {
-      x += x_vel;
-      y += y_vel;
-      if (bitRead(screen[x+x_vel], y+y_vel)) { // if the ball will be at the same pos as a paddle
-        y_vel *= -1; // bounce
+      ball_x += x_vel;
+      ball_y += y_vel;
+      if (bitRead(screen[ball_y + y_vel], ball_x + x_vel)) { // if the ball will be at the same pos as a paddle
+        x_vel *= -1; // bounce
       }
 
-      if (x+x_vel < 0 || x+x_vel > 7) { // if the ball will go off screen
-        x_vel *= -1; // bounce
+      if (ball_y + y_vel < 0 || ball_y + y_vel > 7) { // if the ball will go off screen
+        y_vel *= -1; // bounce
       }
       
       y_val = analogRead(yPin);
@@ -412,14 +422,19 @@ void loop() {
       // elif ball collides with side walls:
       // give points
       // start anew with ball starting in direction of last loser
-
-      bitSet(screen[x+1], y);
+      bitClear(screen[x], prev_y);
+      bitClear(screen[x], prev_y-1);
+      bitClear(screen[x], prev_y+1);
+      
+      bitSet(screen[x], y+1);
       bitSet(screen[x], y);
-      bitSet(screen[x-1], y);
+      bitSet(screen[x], y-1);
       
       for (int i = 0; i < 8; i++) {
         matrix.setRow(0, i, screen[i]);
       }
+      prev_y = y;
+      delay(100);
     }
   }
 }
