@@ -67,6 +67,12 @@ int ball_x = 0;
 int ball_y = 0;
 int prev_y = 0;
 
+// snake
+int snake_x = 4;
+int snake_y = 4;
+int snake_length = 2;
+int snake[]
+
 // numerals
 byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
                     {B00000001, B00000011, B00000001, B00000001, B00000001}, 
@@ -436,5 +442,8 @@ void loop() {
       prev_y = y;
       delay(100);
     }
+  }
+  else if (game == "snek") {
+
   }
 }
