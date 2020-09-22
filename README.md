@@ -21,3 +21,4 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, an
  * Yahtzee
  * Reaction-timer
  * Calculator
+ * Canyon Runner
