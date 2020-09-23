@@ -17,8 +17,8 @@ int x_val;
 int y_val;
 const int highThreshold = 800;
 const int lowThreshold = 200;
-int x = 1;
-int y = 1;
+int x = 0;
+int y = 0;
 int buttonVal;
 const unsigned int longPressThreshold = 1000;
 bool lastState;
@@ -68,10 +68,17 @@ int ball_y = 0;
 int prev_y = 0;
 
 // snake
+// is dead. long live the !snake
 int snake_x = 4;
 int snake_y = 4;
 int snake_length = 2;
-int snake[]
+int snake[64];
+
+// canyon runner
+int canyon_width = 6; // start 6 wide
+int canyon_x = 1; // and with one pixel on either side of the canyon
+int runner_x = 4; // start in the middle
+int rounds = 0;
 
 // numerals
 byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
@@ -134,11 +141,31 @@ byte settings_icon[8] = {
   B00000000,
   B00000000,
 };
+byte snake_icon[8] = {
+  B00000000,
+  B01111110,
+  B00000010,
+  B00111110,
+  B00100000,
+  B00100000,
+  B00110010,
+  B00000000,
+};
+byte canyon_icon[8] = {
+  B01001000,
+  B01001000,
+  B10000100,
+  B10000100,
+  B10000100,
+  B01000010,
+  B01001010,
+  B01000010,
+};
 
 // menu
 String game = "none";
-String games[] = {"gol", "21", "stac", "pong"};
-byte *icons[8] = {gol_icon, blackjack_icon, tower_icon, pong_icon};
+String games[] = {"gol", "21", "stac", "pong", "set", "snek", "run"};
+byte *icons[8] = {gol_icon, blackjack_icon, tower_icon, pong_icon, settings_icon, snake_icon, canyon_icon};
 
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
@@ -171,7 +198,7 @@ void loop() {
     game = games[y];
 
     y_val = analogRead(yPin);
-    if (y_val > highThreshold and y < 3) {
+    if (y_val > highThreshold and y < 6) {
       y += 1;
     } else if (y_val < lowThreshold and y > 0) {
       y -= 1;
@@ -180,7 +207,7 @@ void loop() {
     for (int i = 0; i < 8; i++) {
       matrix.setRow(0, i, icons[y][i]);
     }
-    delay(100);
+    delay(200);
   }
   if (game == "gol") {
     while (!runningSim) { // before we are running the game and are still setting up
@@ -384,7 +411,6 @@ void loop() {
           for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
             matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
           }
-          //breakLoop = true; // you lose boo hoo
           break;
         }
         score++;
@@ -445,5 +471,37 @@ void loop() {
   }
   else if (game == "snek") {
 
+  }
+  else if (game == "run") {
+    while (1) {
+      // draw screen
+      for (int i = 0; i < 8; i++) {
+        matrix.setRow(0, i, screen[i]);
+      }
+      matrix.setLed(0, 6, byteToXY(runner_x), true); // show player position
+      
+      // check collision
+      if (bitRead(screen[2], runner_x)) {
+        game = "none";
+        break; // lose
+      }
+
+      // move everything down one
+      for (int i = 7; i > 1; i--) { // move everything down a level
+        screen[i] = screen[i-1]; // that's literally what I just said in "stac"
+      }
+
+      // draw new level
+      // Can I get a yeah for storing data on the screen?
+      bitSet(screen[0], canyon_x); // top of screen? Yes? No?
+      bitSet(screen[0], canyon_x - canyon_width);
+
+      if (!(rounds % 5)) { // every 5 rounds
+        canyon_width--; // shrink the canyon
+      }
+
+      rounds++; // increment rounds
+      delay(200-rounds*2); // speeds up as rounds gets higher
+    }
   }
 }
