@@ -23,6 +23,7 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, an
  * Calculator
  * Canyon Runner
  * Battleship
+ * Memory game (Simon says)
 
 # Thoughts on how I might implement these 
 because I've made little progress on doing anything and in general am kinda procrastinating right now
@@ -104,6 +105,10 @@ oof
  - misses are solid
  - no indication if you've sunk the ship
  - score is either binary (win/lose, num wins vs num losses) or not (do it faster/less turns and lose less ships, get higher score)
+### Memory Game
+ - Basically the Simon Electronic Memory Game thing
+ - Up, Down, Left, Right
+ - Possibly middle (button press)
 
 ## Other thoughts
 Will def need a `display_digits(99);` func.
