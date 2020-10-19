@@ -7,6 +7,7 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, an
  * Tower Stack Blocks (like the ones you would see at an arcade)
 
 # List of Programs That May or May Not be Implemented
+*The D20 has been rolled. Reaction-timer has been chosen to be implemented.*
  * Pong
  * Paint
  * Maze
@@ -83,7 +84,9 @@ oof
  - I mean some kind of dice game would work but Yahtzee?
  - how to display text? graphics?
 ### Reaction-timer
- - when X is displayed do Y or something (probably when screen turns red press button)
+ - choose between 7 options: left, right, up, down, button press, all except button press, and all (a random mode)
+ - when the symbol is displayed (left arrow for left, right arrow for right, etc.) press/move the stick in that direction
+ - wait a random amount of time before displaying the symbol
  - score is time * scale factor b/c no decimals
 ### Calculator
  - entering numbers is hard
