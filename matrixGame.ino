@@ -1,32 +1,102 @@
 #include <LedControl.h>
 
+// Joystick
 #define xPin A0
 #define yPin A1
-const int buttonPin = 6;
+#define buttonPin 6
 
-// Buzzer (not currently used)
-const int buzzerPin = 7;
+// Buzzer
+#define buzzerPin 7
 
 // LED Matrix
-const int dinPin = 8;
-const int csPin = 9;
-const int clkPin = 10;
+#define dinPin 8
+#define csPin 9
+#define clkPin 10
 
 // Joystick + random
 int x_val;
 int y_val;
+int buttonVal;
 const int highThreshold = 800;
 const int lowThreshold = 200;
-int x = 0;
-int y = 0;
-int buttonVal;
 const unsigned int longPressThreshold = 1000;
 bool lastState;
 unsigned long lastTime;
 unsigned long currTime;
 bool blinkState = true;
 
+// display
 byte screen[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
+
+byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
+                    {B00000001, B00000011, B00000001, B00000001, B00000001}, 
+                    {B00000111, B00000001, B00000111, B00000100, B00000111}, 
+                    {B00000111, B00000001, B00000111, B00000001, B00000111}, 
+                    {B00000101, B00000101, B00000111, B00000001, B00000001}, 
+                    {B00000111, B00000100, B00000111, B00000001, B00000111}, 
+                    {B00000111, B00000100, B00000111, B00000101, B00000111}, 
+                    {B00000111, B00000001, B00000010, B00000010, B00000100}, 
+                    {B00000111, B00000101, B00000111, B00000101, B00000111}, 
+                    {B00000111, B00000101, B00000101, B00000101, B00000111}}; // everything at it's index
+
+int byteToXY(int val) { // really I would say Cartesian but who has space to write that?
+  return map(val, 0, 7, 7, 0);
+}
+
+void displayDigits(int val) {
+  int onesDigit = val % 10;
+  int tensDigit = (val / 10) % 10; // `int` removes yucky fractional pieces
+  for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
+    // display at display0 shifted down one the i'th row of the tensDigit'th digit shifted left 4 ORed with the i'th row of the onesDigit'th digit
+    matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]);
+  }
+}
+
+/*void setDisplay() { // find a way to pass the array through the func
+  for (int i = 0; i < 8; i++) {
+    matrix.setRow(0, i, screen[i]); // flip
+  }
+}*/
+
+/*
+void moveArrayDownOne(byte[8] arr) { // find a way to make this work with pointers and stuff
+  for (int i = 7; i > 1; i--) { // move everything down a level
+    arr[i] = arr[i-1]; // that's literally what I just said in "stac"
+  }
+}
+*/
+
+int getStickY() {
+  y_val = analogRead(yPin);
+  if (y_val > highThreshold) {
+    return 1;
+  } else if (y_val < lowThreshold) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+int getStickX() {
+  x_val = analogRead(xPin);
+  if (x_val > highThreshold) {
+    return 1;
+  } else if (x_val < lowThreshold) {
+    return -1;
+  }
+}
+
+class Game {
+  public:
+    byte[8] icon;
+    int ID;
+    Game(int id, byte[8] ico) {
+      this.ID = id;
+      this.icon = ico;
+    }
+    void run();
+};
+
 
 // Game of Life
 byte gol_board[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
@@ -75,22 +145,23 @@ int snake_length = 2;
 int snake[64];
 
 // canyon runner
+byte canyon[8] = {
+  B01000010,
+  B01000010,
+  B01000010,
+  B01000010,
+  B01000010,
+  B01000010,
+  B01000010,
+  B01000010
+};
 int canyon_width = 6; // start 6 wide
 int canyon_x = 1; // and with one pixel on either side of the canyon
 int runner_x = 4; // start in the middle
 int rounds = 0;
 
 // numerals
-byte digits[10][5] = {{B00000111, B00000101, B00000101, B00000101, B00000111},
-                    {B00000001, B00000011, B00000001, B00000001, B00000001}, 
-                    {B00000111, B00000001, B00000111, B00000100, B00000111}, 
-                    {B00000111, B00000001, B00000111, B00000001, B00000111}, 
-                    {B00000101, B00000101, B00000111, B00000001, B00000001}, 
-                    {B00000111, B00000100, B00000111, B00000001, B00000111}, 
-                    {B00000111, B00000100, B00000111, B00000101, B00000111}, 
-                    {B00000111, B00000001, B00000010, B00000010, B00000100}, 
-                    {B00000111, B00000101, B00000111, B00000101, B00000111}, 
-                    {B00000111, B00000101, B00000101, B00000101, B00000111}}; // everything at it's index
+
 byte gol_icon[8] = {
   B11000000,
   B10000100,
@@ -170,25 +241,21 @@ byte *icons[8] = {gol_icon, blackjack_icon, tower_icon, pong_icon, settings_icon
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // 1 b/c only using the one matrix
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
 
-  pinMode(13, OUTPUT);
+  pinMode(13, OUTPUT); // turn off built-in LED
   digitalWrite(13, LOW);
 
   matrix.shutdown(0, false); // 0 is adr of matrix, because LedControl can be used to control up to 8 matrix-es
-  matrix.setIntensity(0, 0); // b/c LEDs can be _very_ brigt (and also draw current)
+  matrix.setIntensity(0, 0); // b/c LEDs can be _very_ bright (and also draw current)
   matrix.clearDisplay(0);
 
   randomSeed(analogRead(5)); // seed PRNG with floating pin (unless it needs to be pin A5? and not just 5 (not to be confused with @55/A$$))
-}
-
-int byteToXY(int val) { // really I would say Cartesian but who has space to write that?
-  return map(val, 0, 7, 7, 0);
 }
 
 void loop() {
@@ -474,34 +541,41 @@ void loop() {
   }
   else if (game == "run") {
     while (1) {
+      memcpy(screen, canyon, sizeof(canyon)); // move world data to screen
       // draw screen
       for (int i = 0; i < 8; i++) {
         matrix.setRow(0, i, screen[i]);
       }
       matrix.setLed(0, 6, byteToXY(runner_x), true); // show player position
       
-      // check collision
-      if (bitRead(screen[2], runner_x)) {
-        game = "none";
-        break; // lose
-      }
-
       // move everything down one
       for (int i = 7; i > 1; i--) { // move everything down a level
-        screen[i] = screen[i-1]; // that's literally what I just said in "stac"
+        canyon[i] = canyon[i-1]; // that's literally what I just said in "stac"
       }
 
       // draw new level
-      // Can I get a yeah for storing data on the screen?
-      bitSet(screen[0], canyon_x); // top of screen? Yes? No?
-      bitSet(screen[0], canyon_x - canyon_width);
+      bitSet(canyon[0], canyon_x); // top of screen? Yes? No?
+      bitSet(canyon[0], canyon_x - canyon_width);
+
+      // user input
+      x_val = analogRead(xPin);
+      if (x_val > highThreshold and x < 7) {
+        runner_x += 1; // update accordingly
+      } else if (x_val < lowThreshold and x > 0) {
+        runner_x -= 1;
+      }
+
+      if(bitRead(canyon[2], byteToXY(runner_x))) { // if the led above you is lit up
+        game = "none"; // lose
+        break;
+      }
 
       if (!(rounds % 5)) { // every 5 rounds
         canyon_width--; // shrink the canyon
       }
 
       rounds++; // increment rounds
-      delay(200-rounds*2); // speeds up as rounds gets higher
+      delay(200-rounds*1.5); // speeds up as rounds gets higher
     }
   }
 }
