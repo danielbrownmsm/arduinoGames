@@ -4,6 +4,9 @@
 #define xPin A0
 #define yPin A1
 #define buttonPin 6
+#define highThreshold 800
+#define lowThreshold 200
+#define longPressThreshold 1000
 
 // Buzzer
 #define buzzerPin 7
@@ -14,12 +17,6 @@
 #define clkPin 10
 
 // Joystick + random
-int x_val;
-int y_val;
-int buttonVal;
-const int highThreshold = 800;
-const int lowThreshold = 200;
-const unsigned int longPressThreshold = 1000;
 bool lastState;
 unsigned long lastTime;
 unsigned long currTime;
@@ -67,7 +64,7 @@ void moveArrayDownOne(byte[8] arr) { // find a way to make this work with pointe
 */
 
 int getStickY() {
-  y_val = analogRead(yPin);
+  int y_val = analogRead(yPin);
   if (y_val > highThreshold) {
     return 1;
   } else if (y_val < lowThreshold) {
@@ -78,12 +75,18 @@ int getStickY() {
 }
 
 int getStickX() {
-  x_val = analogRead(xPin);
+  int x_val = analogRead(xPin);
   if (x_val > highThreshold) {
     return 1;
   } else if (x_val < lowThreshold) {
     return -1;
+  } else {
+    return 0;
   }
+}
+
+bool getButtonPress() {
+  return !digitalRead(buttonPin);
 }
 
 class Game {
@@ -97,6 +100,19 @@ class Game {
     void run();
 };
 
+
+byte gol_icon[8] = {
+  B11000000,
+  B10000100,
+  B00000010,
+  B00001110,
+  B00000000,
+  B00000000,
+  B11000000,
+  B11000000,
+};
+Game GameOfLife = Game(0, gol_icon);
+GameOfLife.runningSim = false;
 
 // Game of Life
 byte gol_board[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
@@ -162,16 +178,7 @@ int rounds = 0;
 
 // numerals
 
-byte gol_icon[8] = {
-  B11000000,
-  B10000100,
-  B00000010,
-  B00001110,
-  B00000000,
-  B00000000,
-  B11000000,
-  B11000000,
-};
+
 byte blackjack_icon[8] = {
   B00000000,
   B01110001,
