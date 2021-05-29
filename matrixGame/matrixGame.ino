@@ -71,7 +71,81 @@ void loop() {
 void towerStackBlocks() {
   // get inputs
   // set up field
-  // if button pressed:
+  // move topRow 1 * direction to the right
+  // if button pressed and lastButtonState == released: // so that people can't just hold the button down
   //    topRow &= rowDirectlyBelowTopRow
   //    shift all rows down one
+  //    topRow = rowDirectlyBelowTopRow
+  //    score++
+  //  if topRow == 0:
+  //    display(score)
+  //    quitToTitle();
+}
+
+void blackjack() {
+  // set initial cards (p: 1, c: 1)
+  // while not playerHasChosen:
+  //    display(currentChoice)
+  //    if stickMovesUp:
+  //      currentChoice = hit
+  //    elif stickMoveDown:
+  //      currentChoice = stay
+  //    if buttonPressed:
+  //      playerHasChosen = true;
+  //  
+  //  if currentChoice is hit:
+  //    playerCardTotal += random(1, 10)
+  //  if computerCardTotal < 17:
+  //    computerCardTotal += random(1, 10)
+  //  if playerCardTotal > 21 || playerCardTotal < computerCardTotal < 22:
+  //    display(lose);
+  //  else:
+  //    display(win);
+  //  
+  //  waitForQuitOrPlayAgainIDK();
+  //  quitToTitle();
+}
+
+void battleship() {
+  // set up field
+  /*
+   * while playerHasNotPlacedAllShips:
+   *   display(placedShips)
+   *   blink(currentShip)
+   *   if buttonPressed:
+   *      placeShip
+   * 
+   * placeCPUShips()
+   * while not someoneHasWon:
+   *    while not playerHasPickedTarget:
+   *        slowBlink(cursor)
+   *        fastBlink(playerHits)
+   *        displaySolid(playerMisses)
+   *        if buttonPressed:
+   *          target = currentPos
+   *    doPlayerHitOrMissLogic and updateBoardsSlashFields
+   *    doCpuLogic()
+   *    doWinOrLoseConditions()
+   */
+}
+
+void canoyonRunner() {
+  /*
+   * initialize
+   * while not PlayerHasCrashed:
+   *  display(screenThingyOrSomething);
+   *  if stick == left:
+   *    playerPos -= 1
+   *  elif stick == right:
+   *    playerPos += 1
+   *  doCollision()
+   * 
+   *  if enoughTimeHasPassed():
+   *    moveCanyonLeftOrRightABit();
+   *  elif moreThanEnoughTimeHasPassed():
+   *    shrinkCanyon()
+   *  elif wayMoreThanEnoughTimeHasPassedOrSomething maybe idk if you even want to include this:
+   *    speedUpPlayerOrSomething()
+   * 
+   */
 }
