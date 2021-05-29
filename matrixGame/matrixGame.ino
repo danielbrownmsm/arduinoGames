@@ -27,7 +27,15 @@ byte screen[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B000000
 // actual LED matrix. the "1" is because we are only using one matrix/display
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
 
-
+// drawLine(x1, y1, x2, y2)
+// setLed(x, y)
+// drawRect(x, y, width, height)
+// drawCircle(x, y, radius)
+// blitSprite(sprite, x, y)
+// displayDigit(number, x=0, y=0) // set optional params to be correct vals
+// button.onPress / onRelease / onPressRelease / whileHeld / whileReleased / onLongPress
+// joy.whenInRange / whileInRange / whenNotInRange / whileNotInRange
+// double-buffered screen
 
 void setup() {
   Serial.begin(9600);
@@ -55,4 +63,15 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 }
 
 void loop() {
+  index = 0;
+  button.onPress(games[index].run());
+  CommandScheduler.run();
+}
+
+void towerStackBlocks() {
+  // get inputs
+  // set up field
+  // if button pressed:
+  //    topRow &= rowDirectlyBelowTopRow
+  //    shift all rows down one
 }
