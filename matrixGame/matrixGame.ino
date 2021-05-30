@@ -149,3 +149,97 @@ void canoyonRunner() {
    * 
    */
 }
+
+void tetris() {
+  /*
+   * initialize and all that
+   * pieces = {{B100, B110, B100}, etc.}
+   * while not playerHasLost
+   *    nextPiece = random.choice(pieces)
+   *    pieceLoc = 0
+   *    display(board)
+   *    display(nextPiece)
+   *    pieceLoc -= 1
+   *    if joystick == left and pieceX > 0:
+   *        pieceX -= 1
+   *    elif joystick == right and pieceX < 8:
+   *        pieceX += 1
+   *    elif buttonPressed():
+   *        rotate(nextPiece); // yeah rotation will be hard
+   *    if joystick == down:
+   *        //do some weird collision stuff
+   *    if topRowHasAPiece:
+   *        lose();
+   *        quitToTitle();
+   */
+}
+
+void unblockMe() {
+  //yeah nope
+}
+
+void timer() {
+  //useless? not even a game but sure I guess
+}
+
+void dinoGame() {
+  playerHasCrashed = false;
+  score = 0;
+  player_vel = 0; // y-velocity
+  player_y = 7; // dist from ground
+  obstacle_pos = Vector(0, 0) // (x, y)
+  obstacles = { /* TODO */};
+  speed = 1000; // higher is slower
+  clearBuffer();
+  while (!playerHasCrashed) {
+    drawLine(0, 7, 7, 7); // all draw calls operate on buffer, not actual screen
+    obstacle = random.choice(obstacles);
+    blit(obstacle, obstacle_pos); // blits onto buffer
+    obstacle_pos[x] -= 1;
+
+    // rest of stuff TODO
+
+    fancyDelay(speed); // TODO make delay work but without delay so we don't miss inputs
+    screen.flip()
+  }
+  /* 
+   * initialize
+   * while not playerHasCrashed:
+   *    display(world)
+   *    obstacle = random.choice(obstacles)
+   *    display(obstacle)
+   *    
+   *    if player.collidesWith(obstalce):
+   *      playerHasCrashed = true;
+   *    
+   *    if joystick == up and not player.isJumping:
+   *      player.isJumping = true;
+   *    elif joystick == down and not player.isDucking:
+   *      player.isDucking = true;
+   * 
+   *    if player.isJumping:
+   *        //TODO figure out player movement
+
+   * quitToTitle();
+   */
+}
+
+void snake() {
+  // i literally have no idea
+}
+
+void reactionTimer() {
+  // idk
+}
+
+void options() {
+  /*
+   * mute/unmute
+   * display brightness
+   * AI difficulty?
+   * multiplayer? (CPU vs 2nd person)
+   * long button press threshold??
+   * joystick sensitivity???
+   * game speed???? (just have delay(gameSpeed); in all game loops or something that's kinda a trash way to do it but whatever)
+   */
+}
