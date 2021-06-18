@@ -151,6 +151,42 @@ void canoyonRunner() {
 }
 
 void tetris() {
+  pieces[] = {{B11, B11, B11}, /* TODO */};
+  lost = false;
+  piece_loc = vector(0, 0)
+  piece = random.choice(pieces);
+  piecePlaced = false;
+  board = {B0, B0, B0, B0, B0, B0, B0, B0};
+  
+  while (!lost) {
+    display(board); // show all current placed pieces
+    blit(piece, piece_loc); // display current active piece
+
+    if (enoughTimeHasPassed || joystickDown()) { // player and time can move down. Piece does not move up, ever. 
+      piece_loc[1] -= 1; // move the y down 1
+    }
+
+    if (buttonPressed()) {
+      piece = rotate(piece);
+    }
+
+    //TODO make this so that sensitivity is less and you can actually be precise and stuff
+    piece_loc[0] = clamp(piece_loc[0] + (1 * joystickXdir()), 0, 7); // handle x axis movement
+
+    // maybe just: if ((piece && board) > 0) but no because needs to be at piece location whatever
+    if ((piece[0] && board[piece_loc[1] - 1]) != 0) { // TODO fix this this is really wonky collision and doesn't handle edge case of colliding with floor
+      board.blit(piece, piece_loc - 1); // also TODO fix
+      piece_loc = 0, 0;
+      piece = random.choice(pieces);
+      score++;
+    }
+
+    flip(); // flip everything to the screen
+  }
+  displayNumbers(score);
+  waitForButtonPress();
+  break;
+
   /*
    * initialize and all that
    * pieces = {{B100, B110, B100}, etc.}
@@ -233,6 +269,7 @@ void reactionTimer() {
 }
 
 void options() {
+  // i have no idea how I'm going to implement this
   /*
    * mute/unmute
    * display brightness
