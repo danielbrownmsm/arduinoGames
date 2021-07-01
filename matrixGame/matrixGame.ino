@@ -280,3 +280,23 @@ void options() {
    * game speed???? (just have delay(gameSpeed); in all game loops or something that's kinda a trash way to do it but whatever)
    */
 }
+
+byte[8] pinball = {
+  B00000000,
+  B11000011,
+  B10000001,
+  B00011000,
+  B00011010,
+  B00000010,
+  B10000110,
+  B01001010
+}
+
+void pinball() {
+  /*
+   * standarn pinball. 3 lives. hitting things gives score. move left to up left paddle, right to up right paddle. Up to up both paddles.
+   * 
+   * 
+   * 
+   *  */
+}

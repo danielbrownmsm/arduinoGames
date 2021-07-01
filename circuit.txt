@@ -1,0 +1,21 @@
+== Arduino ==
++5v --> Breadboard line 1 (refered to as bVCC)
+GND --> Breadboard line 2 (refered to as bGND)
+
+== Joystick ==
+GND --> bGND
++5v --> bVCC
+VRx --> Arduino A0 (analog input)
+VRy --> Arduino A1 (analog input)
+SW --> Arduino pin 50 (DIO)
+
+== Passive Buzzer (no active components) ==
+pin 1 --> Arduino pin 8 (PWM)
+pin 2 --> bGND
+
+== LED Matrix ==
+VCC --> bVCC
+GND --> bGND
+DIN --> Arduino pin 5 (PWM)
+CS --> Arduino pin 6 (PWM)
+CLK --> Arduino pin 7 (PWM)
