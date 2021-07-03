@@ -1,16 +1,17 @@
+#include <Arduino.h>
+#line 1 "/home/daniel/Documents/GitHub/arduinoGames/matrixGame/matrixGame.ino"
 #include <LedControl.h>
 
 // PINS
 #define xPin A0
 #define yPin A1
-#define buttonPin A2 // !! NOTE !! b/c of the wiring and stuff, the analogRead will read some random values (seed PRNG, anyone?) when unpressed, and ~1020 when pressed (a check for >1010 should work just fine))
-//TODO update wiring file and stuff
+#define buttonPin = 50;
 
-#define buzzerPin 8
+#define buzzerPin = 8;
 
-#define dinPin 5
-#define csPin 6
-#define clkPin 7
+#define dinPin = 5;
+#define csPin = 6;
+#define clkPin = 7;
 
 // CONTROLS
 int x_val; // x value of the joystick
@@ -27,7 +28,6 @@ byte screen[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B000000
 
 // actual LED matrix. the "1" is because we are only using one matrix/display
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
-// !! NOTE !! (0, 0) is the lower right-hand corner of the display. Draw accordingly
 
 // drawLine(x1, y1, x2, y2)
 // setLed(x, y)
@@ -45,7 +45,7 @@ void setup() {
   // set all the pinmodes
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
-  pinMode(buttonPin, INPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
 
   // turn off the built-in LED (13 on the ATMega2560, may vary)
@@ -65,13 +65,13 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 }
 
 void loop() {
-  matrix.setRow(0, 0, B00000001);
+  matrix.setRow(B10000000, 0);
   Serial.print("X: ");
   Serial.print(analogRead(xPin));
   Serial.print(" | Y: ");
   Serial.print(analogRead(yPin));
   Serial.print(" | SW: ");
-  Serial.print(analogRead(buttonPin));
+  Serial.print(digitalRead(buttonPin));
   Serial.print("\n");
   delay(300);
 
@@ -163,8 +163,8 @@ void canoyonRunner() {
 }
 
 void tetris() {
-  //pieces[] = {{B11, B11, B11}, /* TODO */};
-  /**lost = false;
+  pieces[] = {{B11, B11, B11}, /* TODO */};
+  lost = false;
   piece_loc = vector(0, 0)
   piece = random.choice(pieces);
   piecePlaced = false;
@@ -197,7 +197,7 @@ void tetris() {
   }
   displayNumbers(score);
   waitForButtonPress();
-  break;*/
+  break;
 
   /*
    * initialize and all that
@@ -231,12 +231,12 @@ void timer() {
 }
 
 void dinoGame() {
-  /*playerHasCrashed = false;
+  playerHasCrashed = false;
   score = 0;
   player_vel = 0; // y-velocity
   player_y = 7; // dist from ground
   obstacle_pos = Vector(0, 0) // (x, y)
-  obstacles = { /* TODO *//*};
+  obstacles = { /* TODO */};
   speed = 1000; // higher is slower
   clearBuffer();
   while (!playerHasCrashed) {
@@ -249,7 +249,7 @@ void dinoGame() {
 
     fancyDelay(speed); // TODO make delay work but without delay so we don't miss inputs
     screen.flip()
-  }*/
+  }
   /* 
    * initialize
    * while not playerHasCrashed:
@@ -293,7 +293,7 @@ void options() {
    */
 }
 
-/*byte[8] pinball = {
+byte[8] pinball = {
   B00000000,
   B11000011,
   B10000001,
@@ -302,11 +302,11 @@ void options() {
   B00000010,
   B10000110,
   B01001010
-}*/
+}
 
 void pinball() {
   /*
-   * standard pinball. 3 lives. hitting things gives score. move left to up left paddle, right to up right paddle. Up to up both paddles.
+   * standarn pinball. 3 lives. hitting things gives score. move left to up left paddle, right to up right paddle. Up to up both paddles.
    * 
    * 
    * 
