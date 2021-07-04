@@ -75,12 +75,40 @@ void loop() {
   Serial.print("\n");
   delay(300);
 
+  towerStackBlocks();
+
   //index = 0;
   //button.onPress(games[index].run());
   //CommandScheduler.run();
 }
 
 void towerStackBlocks() {
+  byte[8] tower = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
+  int direction = 1;
+
+  while(true) {
+    //get inputs
+    
+    //blit(tower); //???
+    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // ??/
+      direction *= -1;
+    }
+
+    tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); //???
+    if (digitalRead(buttonPin) && lastButtonState == false) {
+      tower[0] &= tower[1];
+      //TODO shift all rows down one
+      tower[0] = tower[1];
+      score++;
+    }
+
+    if (tower[0] == 0) {
+      printDigits(score); //???
+      wait(); //???
+      return; //???
+    }
+
+  }
   // get inputs
   // set up field
   // move topRow 1 * direction to the right
