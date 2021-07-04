@@ -64,6 +64,22 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
   return map(val, 0, 7, 7, 0);
 }
 
+void blit(byte array[8]) {
+  for (int row = 0; row < sizeof array; row++) {
+    matrix.setRow(0, row, array[row]);
+  }
+}
+
+void printDigits(int number) {
+
+}
+
+void wait() {
+  while (!digitalRead(buttonPin)) {
+    delay(100);
+  }
+}
+
 void loop() {
   matrix.setRow(0, 0, B00000001);
   Serial.print("X: ");
@@ -83,28 +99,38 @@ void loop() {
 }
 
 void towerStackBlocks() {
-  byte[8] tower = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
+  byte tower[8] = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
   int direction = 1;
+  int score = 0;
+  bool lastButtonState = false;
+  bool buttonPress = false;
 
   while(true) {
-    //get inputs
+    lastButtonState = buttonPress;
+    buttonPress = digitalRead(buttonPin);
     
     //blit(tower); //???
-    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // ??/
+    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // ???
       direction *= -1;
     }
 
     tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); //???
     if (digitalRead(buttonPin) && lastButtonState == false) {
-      tower[0] &= tower[1];
-      //TODO shift all rows down one
+      tower[1] &= tower[0];
+
+      // tower[6] is base
+      // tower[0] is the moving level
+      // only 7 items (0-6) b/c top one is always empty/blank/off
+      for (int i = 6; i > 1; i--) { // move everything down a level
+        tower[i] = tower[i-1];
+      }
       tower[0] = tower[1];
       score++;
     }
 
     if (tower[0] == 0) {
-      printDigits(score); //???
-      wait(); //???
+      printDigits(score);
+      wait();
       return; //???
     }
 
