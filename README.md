@@ -4,26 +4,28 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
 # Games that have been completed
  - none
 
-# TODO List of Games
+# List of games that have been started on
  - snake
  - canyon runner
  - tetris
  - block stack
  - 21/blackjack
+ - reaction timer
+ - battleship?
+ - options menu
+ - pinball
+
  - paint
  - yahtzee?
  - calculator???
  - timer?????
- - reaction timer
  - poker?
- - battleship?
  - google dino game
  - pokemon???
  - unblock me
  - tic-tac-toe (knoghts and crosses)
  - guessing game?
  - breakout (Atari)
- - options menu
  - microtransactions
  - John Conway's GoL
  - maze
@@ -33,6 +35,7 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - coin flip
  - pong
  - flappy bird
+ - crossy road
  - simon says (memory game)
  - tron
  - a screensave (why the heck would you want this tho?)
@@ -48,5 +51,6 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - connect-4
  - checkers???
  - gravity-guy-but-not?
+ - party games
 
 Submit a PR if you want to add to the list. Submit a PR if you've implemented a game using the library that doesn't exist right now that will allow a menu and a bunch of useful things for writing games for this console. Submit a PR if you just feel like it. If you've made it thus far then either you're me or really bored. In either case, have you tried reading random Wikipedia articles?

@@ -4,5 +4,5 @@
     "sketch": "matrixGame/matrixGame.ino",
     "programmer": "Arduino as ISP",
     "port": "COM3",
-    "output": "C:\\Users\\BROWN_~1\\AppData\\Local\\Temp\\arduino_build\\"
+    "output": "/tmp/arduino"
 }

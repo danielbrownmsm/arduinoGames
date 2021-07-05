@@ -13,17 +13,30 @@
 #define clkPin 7
 
 // CONTROLS
-int x_val; // x value of the joystick
-int y_val; // y value of the joystick
-int buttonVal; // if the button is pressed or not
+//int x_val; // x value of the joystick
+//int y_val; // y value of the joystick
+//int buttonVal; // if the button is pressed or not
 
 const unsigned int longPressThreshold = 1000; // threshold for a long button press
 bool lastState; // previous state of the button (current minus 1)
 unsigned long lastTime; // last time the button's state changed or something
 unsigned long currTime; // current system time
 
+// CONSTANT ARRAY SCREEN THINGS
 // array to hold the state of the screen
 byte screen[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
+const byte digits[10][5] = {
+  {B00000111, B00000101, B00000101, B00000101, B00000111},
+  {B00000001, B00000011, B00000001, B00000001, B00000001}, 
+  {B00000111, B00000001, B00000111, B00000100, B00000111}, 
+  {B00000111, B00000001, B00000111, B00000001, B00000111}, 
+  {B00000101, B00000101, B00000111, B00000001, B00000001}, 
+  {B00000111, B00000100, B00000111, B00000001, B00000111}, 
+  {B00000111, B00000100, B00000111, B00000101, B00000111}, 
+  {B00000111, B00000001, B00000010, B00000010, B00000100}, 
+  {B00000111, B00000101, B00000111, B00000101, B00000111}, 
+  {B00000111, B00000101, B00000101, B00000101, B00000111}
+}; // everything at it's index
 
 // actual LED matrix. the "1" is because we are only using one matrix/display
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
@@ -38,6 +51,15 @@ LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
 // button.onPress / onRelease / onPressRelease / whileHeld / whileReleased / onLongPress
 // joy.whenInRange / whileInRange / whenNotInRange / whileNotInRange
 // double-buffered screen
+
+struct Battleship
+{
+  char x, y; // position
+  char length; // length
+  bool horizontal; // if it is horizontal (true) or vertical (false)
+};
+
+//TODO look into using char instead of int to save a byte of space everywhere if less than 127/255 for unsigned is needed
 
 void setup() {
   Serial.begin(9600);
@@ -65,19 +87,33 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 }
 
 void blit(byte array[8]) {
-  for (int row = 0; row < sizeof array; row++) {
+  for (int row = 0; row < sizeof(array); row++) {
     matrix.setRow(0, row, array[row]);
   }
 }
 
+//TODO documentation
 void printDigits(int number) {
-
+  int onesDigit = number % 10;
+  int tensDigit = (number / 10) % 10; // because result is int it removes stuff after decimal
+  for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
+    matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
+  }
 }
 
 void wait() {
   while (!digitalRead(buttonPin)) {
     delay(100);
   }
+}
+
+int clamp(int val, int min, int max) {
+  if (val < min) {
+    return min;
+  } else if (val > max) {
+    return max;
+  }
+  return val;
 }
 
 void loop() {
@@ -98,6 +134,7 @@ void loop() {
   //CommandScheduler.run();
 }
 
+//TODO comment this code
 void towerStackBlocks() {
   byte tower[8] = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
   int direction = 1;
@@ -109,7 +146,7 @@ void towerStackBlocks() {
     lastButtonState = buttonPress;
     buttonPress = digitalRead(buttonPin);
     
-    //blit(tower); //???
+    blit(tower);
     if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // ???
       direction *= -1;
     }
@@ -135,17 +172,6 @@ void towerStackBlocks() {
     }
 
   }
-  // get inputs
-  // set up field
-  // move topRow 1 * direction to the right
-  // if button pressed and lastButtonState == released: // so that people can't just hold the button down
-  //    topRow &= rowDirectlyBelowTopRow
-  //    shift all rows down one
-  //    topRow = rowDirectlyBelowTopRow
-  //    score++
-  //  if topRow == 0:
-  //    display(score)
-  //    quitToTitle();
 }
 
 void blackjack() {
@@ -174,6 +200,37 @@ void blackjack() {
 
 void battleship() {
   // set up field
+  byte player[8] = { /* TODO */ };
+  byte cpu[8] = { /* TODO */ };
+
+  bool playerDonePlacing = false;
+  bool cursorOn = false;
+  int cursorX = 0;
+  int cursorY = 0;
+
+  /* PRV | CUR | VAL
+   *  0  |  0  |  0
+   *  0  |  L  | -1
+   *  L  |  0  |  ???
+   *  L  |  L  | -2
+   *  L  |  R  |  ???
+   *  0  |  R  |  1
+   *  R  |  0  |  ???
+   *  R  |  R  |  2
+   *  R  |  L  |  ???
+   */
+  int lastXState = 0; // 0 is neutral, -1 is going from 0 to left, -2 is left, ???, 1 is going from 0 to right, 2 is right, ???
+  int lastYState = 0; // same as above
+  //Battleship playerShips
+  while(!playerDonePlacing) {
+    //TODO logic
+  }
+
+  for (int shipNum = 0; shipNum < 4; shipNum++) {
+    int shipSize = random(1, 4);
+    int shipX = random(1, 8 - shipSize);
+    // AGHH LOGIC
+  }
   /*
    * while playerHasNotPlacedAllShips:
    *   display(placedShips)
@@ -196,6 +253,45 @@ void battleship() {
 }
 
 void canoyonRunner() {
+  int playerPos = 4;
+  int canyonPos = 2;
+  int canyonWidth = 6;
+  int rounds = 0;
+  bool playerHasCrashed = false;
+  byte display[8] = {
+    B01000010,
+    B01000010,
+    B01000010,
+    B01000010,
+    B01000010,
+    B01000010,
+    B01000010,
+    B01000010,
+  };
+
+  while (!playerHasCrashed) {
+    blit(display);
+    //TODO handle inputs
+
+    if ((screen[7] && playerPos)  != 0) { //TODO make actually work right
+      printDigits(rounds);
+      wait();
+      break;
+    }
+
+    rounds++;
+    if (rounds % 10 == 0) {
+      canyonPos += random(-1, 1);
+      canyonPos = clamp(canyonPos, 0, 7);
+    } 
+    if (rounds % 15 == 0) {
+      canyonWidth -= 1;
+      clamp(canyonWidth, 1, 8);
+    }
+    if (rounds % 20 == 0) {
+      //TODO speed up player or something idk
+    }
+  }
   /*
    * initialize
    * while not PlayerHasCrashed:
@@ -365,4 +461,27 @@ void pinball() {
    * 
    * 
    *  */
+}
+
+void guessingGame() {
+  /* Standard guessing game */
+  int number = random(1, 20);
+  int playerGuess = 0;
+  bool playerHasGuessed;
+  while (true) {
+    playerHasGuessed = false;
+    while (!playerHasGuessed) {
+      printDigits(playerGuess);
+      //TODO handle inputs
+    }
+
+    if (playerGuess == number) {
+      //TODO display win or something
+      break;
+    } else if (playerGuess < number) {
+      //TODO display ^ up arrow ^ or something
+    } else if (playerGuess > number) {
+      //TODO display V down arrow V or something
+    }
+  }
 }

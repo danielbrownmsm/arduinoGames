@@ -3,13 +3,14 @@
         {
             "name": "Linux",
             "includePath": [
-                "C:\\Program Files (x86)\\Arduino\\tools\\**",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
                 "/home/daniel/Downloads/arduino-1.8.13/hardware/arduino/avr/**",
-                "/home/daniel/Downloads/arduino-1.8.13/tools/**"
+                "/home/daniel/Downloads/arduino-1.8.13/tools/**",
+                "/home/daniel/Arduino/libraries/**",
+                "/home/daniel/Arduino/libraries/LedControl/src",
+                "/usr/include/i386-linux-gnu/c++/7",
+                "/usr/include/i386-linux-gnu"
             ],
             "forcedInclude": [
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h",
                 "/home/daniel/Downloads/arduino-1.8.13/hardware/arduino/avr/cores/arduino/Arduino.h"
             ],
             "intelliSenseMode": "${default}",
