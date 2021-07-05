@@ -7,7 +7,7 @@ GND --> bGND
 +5v --> bVCC
 VRx --> Arduino A0 (analog input)
 VRy --> Arduino A1 (analog input)
-SW --> Arduino pin 50 (DIO)
+SW --> Arduino pin A2 (DIO)
 
 == Passive Buzzer (no active components) ==
 pin 1 --> Arduino pin 8 (PWM)

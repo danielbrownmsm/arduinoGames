@@ -4,7 +4,6 @@
 #define xPin A0
 #define yPin A1
 #define buttonPin A2 // !! NOTE !! b/c of the wiring and stuff, the analogRead will read some random values (seed PRNG, anyone?) when unpressed, and ~1020 when pressed (a check for >1010 should work just fine))
-//TODO update wiring file and stuff
 
 #define buzzerPin 8
 
@@ -17,14 +16,12 @@
 //int y_val; // y value of the joystick
 //int buttonVal; // if the button is pressed or not
 
-const unsigned int longPressThreshold = 1000; // threshold for a long button press
-bool lastState; // previous state of the button (current minus 1)
-unsigned long lastTime; // last time the button's state changed or something
-unsigned long currTime; // current system time
+//const unsigned int longPressThreshold = 1000; // threshold for a long button press
+//bool lastState; // previous state of the button (current minus 1)
+//unsigned long lastTime; // last time the button's state changed or something
+//unsigned long currTime; // current system time
 
 // CONSTANT ARRAY SCREEN THINGS
-// array to hold the state of the screen
-byte screen[8] = {B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000};
 const byte digits[10][5] = {
   {B00000111, B00000101, B00000101, B00000101, B00000111},
   {B00000001, B00000011, B00000001, B00000001, B00000001}, 
@@ -37,6 +34,26 @@ const byte digits[10][5] = {
   {B00000111, B00000101, B00000111, B00000101, B00000111}, 
   {B00000111, B00000101, B00000101, B00000101, B00000111}
 }; // everything at it's index
+byte win[8] = { // maybe???
+  B00111100,
+  B11111111,
+  B10111101,
+  B10111101,
+  B01111110,
+  B00011000,
+  B00011000,
+  B00111100
+};
+byte lose[8] = { // (I'ts an "X")
+  B11000011,
+  B11100111,
+  B01111110,
+  B00111100,
+  B00111100,
+  B01111110,
+  B11100111,
+  B11000011,
+};
 
 // actual LED matrix. the "1" is because we are only using one matrix/display
 LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
@@ -81,18 +98,20 @@ void setup() {
   randomSeed(analogRead(5)); // seed PRNG with value from a floating pin
 }
 
-//TODO explain what this does
+// because binary numbers work with bit 0 all the way to the right and increase as you go left,
+// but decimal numbers are opposite this, this just maps a binary to decimal number (based on digit-placement)
 int byteToXY(int val) { // really I would say Cartesian but who has space to write that?
   return map(val, 0, 7, 7, 0);
 }
 
+// takes an array of bytes and writes them to the display
 void blit(byte array[8]) {
   for (int row = 0; row < sizeof(array); row++) {
     matrix.setRow(0, row, array[row]);
   }
 }
 
-//TODO documentation
+// prints a number (between 0 and 99) to the screen. This is non-blocking
 void printDigits(int number) {
   int onesDigit = number % 10;
   int tensDigit = (number / 10) % 10; // because result is int it removes stuff after decimal
@@ -101,12 +120,14 @@ void printDigits(int number) {
   }
 }
 
+// waits for a read on the button pin (so you can display things and wait for the player to continue)
 void wait() {
   while (!digitalRead(buttonPin)) {
     delay(100);
   }
 }
 
+// clamps a value between a given minimum and maximum
 int clamp(int val, int min, int max) {
   if (val < min) {
     return min;
@@ -128,32 +149,34 @@ void loop() {
   delay(300);
 
   towerStackBlocks();
+  blackjack();
+  canoyonRunner();
+  guessingGame();
 
   //index = 0;
   //button.onPress(games[index].run());
   //CommandScheduler.run();
 }
 
-//TODO comment this code
 void towerStackBlocks() {
   byte tower[8] = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
-  int direction = 1;
+  int direction = 1; // 1 for moving right, -1 for moving left
   int score = 0;
-  bool lastButtonState = false;
-  bool buttonPress = false;
+  bool lastButtonState = false; // used for
+  bool buttonPress = false;     // buffering/toggling inputs
 
   while(true) {
     lastButtonState = buttonPress;
     buttonPress = digitalRead(buttonPin);
     
     blit(tower);
-    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // ???
-      direction *= -1;
+    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // if we've reached one of the edges
+      direction *= -1; // invert the direction
     }
 
-    tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); //???
-    if (digitalRead(buttonPin) && lastButtonState == false) {
-      tower[1] &= tower[0];
+    tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); // shift the active level left or right, depending on direction
+    if (digitalRead(buttonPin) && lastButtonState == false) { // if the button is pressed
+      tower[1] &= tower[0]; // shave off the bits that missed
 
       // tower[6] is base
       // tower[0] is the moving level
@@ -161,20 +184,43 @@ void towerStackBlocks() {
       for (int i = 6; i > 1; i--) { // move everything down a level
         tower[i] = tower[i-1];
       }
-      tower[0] = tower[1];
+      tower[0] = tower[1]; // and stack it
       score++;
     }
 
-    if (tower[0] == 0) {
+    if (tower[0] == 0) { // lose condition
       printDigits(score);
       wait();
-      return; //???
+      return; // exit or something idk
     }
 
   }
 }
 
 void blackjack() {
+  int cpuTotal = random(1, 10);
+  if (cpuTotal < 17) {
+    cpuTotal += random(1, 10);
+  }
+
+  int playerTotal = random(1, 10);
+  printDigits(playerTotal);
+  wait();
+
+  bool playerStays = false;
+  while (!playerStays) {
+    //TODO handle inputs and logic
+    if (digitalRead(buttonPin)) {
+    }
+  }
+
+  if (cpuTotal > 21 || (playerTotal > cpuTotal && playerTotal < 22)) {
+    blit(win);
+  } else {
+    blit(lose);
+  }
+  wait();
+
   // set initial cards (p: 1, c: 1)
   // while not playerHasChosen:
   //    display(currentChoice)
@@ -273,7 +319,7 @@ void canoyonRunner() {
     blit(display);
     //TODO handle inputs
 
-    if ((screen[7] && playerPos)  != 0) { //TODO make actually work right
+    if ((display[7] && playerPos) != 0) { //TODO make actually work right
       printDigits(rounds);
       wait();
       break;
@@ -476,7 +522,7 @@ void guessingGame() {
     }
 
     if (playerGuess == number) {
-      //TODO display win or something
+      blit(win);
       break;
     } else if (playerGuess < number) {
       //TODO display ^ up arrow ^ or something
