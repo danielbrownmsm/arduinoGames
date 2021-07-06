@@ -221,28 +221,6 @@ void blackjack() {
     blit(lose);
   }
   wait();
-
-  // set initial cards (p: 1, c: 1)
-  // while not playerHasChosen:
-  //    display(currentChoice)
-  //    if stickMovesUp:
-  //      currentChoice = hit
-  //    elif stickMoveDown:
-  //      currentChoice = stay
-  //    if buttonPressed:
-  //      playerHasChosen = true;
-  //  
-  //  if currentChoice is hit:
-  //    playerCardTotal += random(1, 10)
-  //  if computerCardTotal < 17:
-  //    computerCardTotal += random(1, 10)
-  //  if playerCardTotal > 21 || playerCardTotal < computerCardTotal < 22:
-  //    display(lose);
-  //  else:
-  //    display(win);
-  //  
-  //  waitForQuitOrPlayAgainIDK();
-  //  quitToTitle();
 }
 
 void dispTwoArrays(byte arrayOne[8], byte arrayTwo[8]) { // literally only a helper func for battleship
@@ -349,38 +327,23 @@ void battleship() {
     }
 
     // win/lose condition
+    int playerHitCount = 0;
+    int cpuHitCount = 0;
     for (int i = 0; i < 7; i++) {
-      if ((player[i] & cpuHits[i]) == playerTotal) {
-        blit(lose);
-        wait();
-        return;
-      } else if ((cpu[i] & playerHits[i]) == cpuTotal) {
-        blit(win);
-        wait();
-        return;
-      }
+      cpuHitCount += cpuHits[i];
+      playerHitCount += playerHits[i];
+    }
+
+    if (playerHitCount == cpuTotal) {
+      blit(win);
+      wait();
+      return;
+    } else if (cpuHitCount == playerTotal) {
+      blit(lose);
+      wait();
+      return;
     }
   }
-
-  /*
-   * while playerHasNotPlacedAllShips:
-   *   display(placedShips)
-   *   blink(currentShip)
-   *   if buttonPressed:
-   *      placeShip
-   * 
-   * placeCPUShips()
-   * while not someoneHasWon:
-   *    while not playerHasPickedTarget:
-   *        slowBlink(cursor)
-   *        fastBlink(playerHits)
-   *        displaySolid(playerMisses)
-   *        if buttonPressed:
-   *          target = currentPos
-   *    doPlayerHitOrMissLogic and updateBoardsSlashFields
-   *    doCpuLogic()
-   *    doWinOrLoseConditions()
-   */
 }
 
 void canoyonRunner() {
@@ -410,7 +373,7 @@ void canoyonRunner() {
       break;
     }
 
-    rounds++;
+    rounds++; //TODO make work right
     if (rounds % 10 == 0) {
       canyonPos += random(-1, 1);
       canyonPos = clamp(canyonPos, 0, 7);
@@ -423,24 +386,6 @@ void canoyonRunner() {
       //TODO speed up player or something idk
     }
   }
-  /*
-   * initialize
-   * while not PlayerHasCrashed:
-   *  display(screenThingyOrSomething);
-   *  if stick == left:
-   *    playerPos -= 1
-   *  elif stick == right:
-   *    playerPos += 1
-   *  doCollision()
-   * 
-   *  if enoughTimeHasPassed():
-   *    moveCanyonLeftOrRightABit();
-   *  elif moreThanEnoughTimeHasPassed():
-   *    shrinkCanyon()
-   *  elif wayMoreThanEnoughTimeHasPassedOrSomething maybe idk if you even want to include this:
-   *    speedUpPlayerOrSomething()
-   * 
-   */
 }
 
 void tetris() {
@@ -534,6 +479,7 @@ void dinoGame() {
     player_y += player_vel;
 
     //TODO handle inputs
+    //TODO add ground collision so you can't infinitely jump
     player_vel += 10;
 
     obs_x -= speed;
@@ -559,26 +505,6 @@ void dinoGame() {
     //TODO make this occur only once every X seconds
     speed += 1;
   }
-  /* 
-   * initialize
-   * while not playerHasCrashed:
-   *    display(world)
-   *    obstacle = random.choice(obstacles)
-   *    display(obstacle)
-   *    
-   *    if player.collidesWith(obstalce):
-   *      playerHasCrashed = true;
-   *    
-   *    if joystick == up and not player.isJumping:
-   *      player.isJumping = true;
-   *    elif joystick == down and not player.isDucking:
-   *      player.isDucking = true;
-   * 
-   *    if player.isJumping:
-   *        //TODO figure out player movement
-
-   * quitToTitle();
-   */
 }
 
 void snake() {
@@ -626,12 +552,6 @@ void pinball() {
     //TODO win/lose conditions
     //TODO scoring
   }
-  /*
-   * standard pinball. 3 lives. hitting things gives score. move left to up left paddle, right to up right paddle. Up to up both paddles.
-   * 
-   * 
-   * 
-   */
 }
 
 void guessingGame() {
