@@ -77,6 +77,7 @@ struct Battleship
 };
 
 //TODO look into using char instead of int to save a byte of space everywhere if less than 127/255 for unsigned is needed
+//TODO implement a difficulty setting
 
 void setup() {
   Serial.begin(9600);
@@ -244,10 +245,23 @@ void blackjack() {
   //  quitToTitle();
 }
 
+void dispTwoArrays(byte arrayOne[8], byte arrayTwo[8]) { // literally only a helper func for battleship
+  for (int i = 0; i < 8; i++) {
+    matrix.setRow(0, i, arrayOne[i] | arrayTwo[i]);
+  }
+}
+
 void battleship() {
   // set up field
-  byte player[8] = { /* TODO */ };
-  byte cpu[8] = { /* TODO */ };
+  byte player[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  byte playerMisses[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  byte playerHits[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int playerTotal = 0;
+
+  byte cpu[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  byte cpuMisses[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  byte cpuHits[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int cpuTotal = 0;
 
   bool playerDonePlacing = false;
   bool cursorOn = false;
@@ -272,11 +286,82 @@ void battleship() {
     //TODO logic
   }
 
+  //CPU placing time
   for (int shipNum = 0; shipNum < 4; shipNum++) {
+    bool horizontal = random(1);
     int shipSize = random(1, 4);
-    int shipX = random(1, 8 - shipSize);
-    // AGHH LOGIC
+    
+    if (horizontal) {
+      int shipX = random(7 - shipSize);
+      int shipY = random(7);
+
+      byte ship = ((int)pow(2, shipSize)) << shipX; // actual ship in actual loc
+      if (ship & cpu[shipY]) { // if it collides with any other currently placed ship
+        shipNum--; // try again
+      }
+    } else {
+      int shipX = random(7);
+      int shipY = random(7 - shipSize);
+
+      for (int x = 0; x < shipY; x++) {
+        //TODO
+      }
+    }
+    
+    cpuTotal += shipSize;
   }
+
+  while (true) { // main game loop
+    // player block
+    bool playerDonePicking = false;
+    int guessX = 0;
+    int guessY = 0;
+
+    //while (!playerDonePicking) {
+      //TODO blinking and stuff (using dispTwoArrays or something)
+      //TODO and also input handling
+    //}
+
+    
+    if (bitRead(cpu[guessY], byteToXY(guessX))) {
+      playerHits[guessY][guessX] = 1;
+    } else {
+      playerMisses[guessY][guessX] = 1;
+    }
+
+    // cpu block
+    bool cpuValidGuess = false;
+    while (!cpuValidGuess) { // try to get CPU to randomly guess (this might be really bad design idk)
+      guessX = random(7); //TODO fix this like @JustinKleiber said (just have a list of guessable values, and pop a guess from it each time)
+      guessY = random(7);
+
+      if (!bitRead(cpuMisses[guessY], guessX)) {
+        if (!bitRead(cpuHits[guessY], guessX)) {
+          cpuValidGuess = true;
+        }
+      }
+    }
+
+    if (bitRead(player[guessY], byteToXY(guessX))) {
+      cpuHits[guessY][guessX] = 1;
+    } else {
+      cpuMisses[guessY][guessX] = 1;
+    }
+
+    // win/lose condition
+    for (int i = 0; i < 7; i++) {
+      if ((player[i] & cpuHits[i]) == playerTotal) {
+        blit(lose);
+        wait();
+        return;
+      } else if ((cpu[i] & playerHits[i]) == cpuTotal) {
+        blit(win);
+        wait();
+        return;
+      }
+    }
+  }
+
   /*
    * while playerHasNotPlacedAllShips:
    *   display(placedShips)
@@ -427,25 +512,53 @@ void timer() {
 }
 
 void dinoGame() {
-  /*playerHasCrashed = false;
-  score = 0;
-  player_vel = 0; // y-velocity
-  player_y = 7; // dist from ground
-  obstacle_pos = Vector(0, 0) // (x, y)
-  obstacles = { /* TODO *//*};
-  speed = 1000; // higher is slower
-  clearBuffer();
+  bool playerHasCrashed = false;
+  int score = 0;
+  int player_vel = 0; // y-velocity
+  int player_y = 0; // dist from ground
+  int obs_x = 0;
+  int obs_y = 0;
+  int obstacle = 0;
+  byte obstacles[5][2] = {
+    {B00, B11},   // airplane
+    {B010, B111}, // cloud
+    {B001, B011}, // bush
+    {B00, B11},   // rock
+    {B01, B01}    // cactus
+  };
+  int speed = 1; // higher is faster
   while (!playerHasCrashed) {
-    drawLine(0, 7, 7, 7); // all draw calls operate on buffer, not actual screen
-    obstacle = random.choice(obstacles);
-    blit(obstacle, obstacle_pos); // blits onto buffer
-    obstacle_pos[x] -= 1;
+    // do physics
+    //TODO make this occur only once every X seconds or something
+    player_vel += -2;
+    player_y += player_vel;
 
-    // rest of stuff TODO
+    //TODO handle inputs
+    player_vel += 10;
 
-    fancyDelay(speed); // TODO make delay work but without delay so we don't miss inputs
-    screen.flip()
-  }*/
+    obs_x -= speed;
+    if (obs_x > 5)  { // if the obstacle _could_ collide with the player
+      //TODO implement collision
+    }
+
+    //TODO handle inputs
+
+    //TODO make this occur only once the previous obstacle has left the screen
+    obstacle = random(4);
+    if (obstacle < 2) {
+      obs_y = 3; //???
+    } else {
+      obs_y = 1; //???
+    }
+    //TODO draw obstacle
+
+    matrix.clearDisplay(0); // clear the screen
+    matrix.setRow(0, 0, B11111111); // draw the ground
+    matrix.setLed(0, player_y + 1, 6, true); // draw the player
+
+    //TODO make this occur only once every X seconds
+    speed += 1;
+  }
   /* 
    * initialize
    * while not playerHasCrashed:
@@ -501,12 +614,24 @@ void options() {
 }*/
 
 void pinball() {
+  int lives = 3;
+  int x = 7;
+  int y = 0;
+  int x_vel = 0;
+  int y_vel = 0;
+  while (lives > 0) {
+    //TODO starting animation
+    //TODO handle inputs
+    //TODO actual physics
+    //TODO win/lose conditions
+    //TODO scoring
+  }
   /*
    * standard pinball. 3 lives. hitting things gives score. move left to up left paddle, right to up right paddle. Up to up both paddles.
    * 
    * 
    * 
-   *  */
+   */
 }
 
 void guessingGame() {
