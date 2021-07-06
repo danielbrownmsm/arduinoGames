@@ -69,12 +69,6 @@ LedControl matrix = LedControl(dinPin, clkPin, csPin, 1);
 // joy.whenInRange / whileInRange / whenNotInRange / whileNotInRange
 // double-buffered screen
 
-struct Battleship
-{
-  char x, y; // position
-  char length; // length
-  bool horizontal; // if it is horizontal (true) or vertical (false)
-};
 
 //TODO look into using char instead of int to save a byte of space everywhere if less than 127/255 for unsigned is needed
 //TODO implement a difficulty setting
@@ -302,7 +296,7 @@ void battleship() {
 
     
     if (bitRead(cpu[guessY], byteToXY(guessX))) {
-      playerHits[guessY][guessX] = 1;
+      playerHits[guessY][guessX] = 1; //TODO change to bitWrite()
     } else {
       playerMisses[guessY][guessX] = 1;
     }
@@ -592,13 +586,13 @@ void calculator() { // the heck daniel that's not even a game. Although, accordi
     printDigits(num1);
   }
 
-  bool flag = false;
+  flag = false;
   while (!flag) {
     //TODO handle input
     printDigits(num2);
   }
 
-  bool flag = false;
+  flag = false;
   while (!flag) {
     //TODO handle input
     printDigits(operation); //TODO add graphics, daniel. Not this number and chart crap
@@ -619,4 +613,45 @@ void calculator() { // the heck daniel that's not even a game. Although, accordi
   }
 
   printDigits(result);
+}
+
+void coinFlip() { // yeah this isn't a game so what deal with it
+  byte heads[8] = {
+    B00111100,
+    B01000010,
+    B10011001,
+    B10100101,
+    B10100101,
+    B10011001,
+    B01000010,
+    B00111100,
+  };
+  byte tails[8] = {
+    B00111100,
+    B01000010,
+    B10011001,
+    B10011001,
+    B10111101,
+    B10111101,
+    B01000010,
+    B00111100,
+  };
+  int speed = 100;
+  bool resultIsHeads = random(1);
+  for (int i = 0; i < 20; i++) {
+    if (resultIsHeads) {
+      blit(heads);
+    } else {
+      blit(tails);
+    }
+    resultIsHeads = !resultIsHeads;
+
+    delay(speed);
+    if (i == 10) {
+      speed = 500;
+    } else if (i == 5) {
+      speed = 800;
+    }
+  }
+  wait();
 }

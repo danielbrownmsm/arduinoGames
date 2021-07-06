@@ -15,17 +15,17 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - options menu
  - pinball
  - google dino game
+ - calculator???
+ - guessing game?
 
 # List of games that are just kinda vibin right now
  - paint
  - yahtzee?
- - calculator???
  - timer?????
  - poker?
  - pokemon???
  - unblock me
  - tic-tac-toe (knoghts and crosses)
- - guessing game?
  - breakout (Atari)
  - microtransactions
  - John Conway's GoL
