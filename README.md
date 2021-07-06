@@ -17,6 +17,7 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - google dino game
  - calculator???
  - guessing game?
+ - coin flip
 
 # List of games that are just kinda vibin right now
  - paint
@@ -33,7 +34,6 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - RPG???
  - some music making thing
  - support for writing programs on the console
- - coin flip
  - pong
  - flappy bird
  - crossy road
