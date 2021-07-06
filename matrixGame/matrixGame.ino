@@ -576,3 +576,47 @@ void guessingGame() {
     }
   }
 }
+
+void calculator() { // the heck daniel that's not even a game. Although, according to some random YouTube video title I saw you can speedrun it
+  /* and here come the implementation comments
+   * or not I think I can write it in (mostly) one go
+   */
+  int num1 = 0;
+  int num2 = 0;
+  double result = 0;
+  int operation = 0;
+  
+  bool flag = false;
+  while (!flag) {
+    //TODO handle input
+    printDigits(num1);
+  }
+
+  bool flag = false;
+  while (!flag) {
+    //TODO handle input
+    printDigits(num2);
+  }
+
+  bool flag = false;
+  while (!flag) {
+    //TODO handle input
+    printDigits(operation); //TODO add graphics, daniel. Not this number and chart crap
+  }
+
+  if (operation == 0) {
+    result = num1 + num2;
+  } else if (operation == 1) {
+    result = num1 - num2;
+  } else if (operation == 2) {
+    result = num1 * num2;
+  } else if (operation == 3) {
+    result = num1 / num2;
+  } else if (operation == 4) {
+    result = pow(num1, num2);
+  } else if (operation == 5) {
+    result = num1 % num2;
+  }
+
+  printDigits(result);
+}
