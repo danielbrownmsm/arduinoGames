@@ -1,6 +1,8 @@
 # arduinoGames
 programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, and a jostick with button. Support for a passive buzzer for sound feedback coming soon
 
+***CODE IS UNDERGOING AN UPDATE (and by that I mean it is actually being written) ON the "rewrite" branch***
+
 # List of Somewhat/Mostly Complete Games
  * Conway's Game of Life
  * 21/Blackjack
