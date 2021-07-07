@@ -1,0 +1,36 @@
+## yeah pretty easy:
+breakout (Atari)
+aliens (galaga)
+some music making thing
+simon says (memory game)
+rythym game (ex beatsaber)
+tic-tac-toe (knoghts and crosses)
+tron
+bowling
+crossy road
+pong
+
+## kinda hard but worth it
+gravity-guy-but-not
+John Conway's GoL
+support for writing programs on the console
+pokemon
+checkers
+temple-run-but-not
+a platformer
+
+## out of already started which ones we want on the trip
+ - tetris
+ - block stack <-- def
+ - 21/blackjack <-- def
+ - options menu <-- def
+ - canyon runner
+ - battleship?
+ - pinball
+ - snake
+ - google dino game
+
+ - reaction timer
+ - guessing game?
+ - calculator???
+ - coin flip

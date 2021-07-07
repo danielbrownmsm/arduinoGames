@@ -122,6 +122,12 @@ void wait() {
   }
 }
 
+void dispTwoArrays(byte arrayOne[8], byte arrayTwo[8]) { // literally only a helper func for battleship
+  for (int i = 0; i < 8; i++) {
+    matrix.setRow(0, i, arrayOne[i] | arrayTwo[i]);
+  }
+}
+
 // clamps a value between a given minimum and maximum
 int clamp(int val, int min, int max) {
   if (val < min) {
@@ -133,7 +139,6 @@ int clamp(int val, int min, int max) {
 }
 
 void loop() {
-  matrix.setRow(0, 0, B00000001);
   Serial.print("X: ");
   Serial.print(analogRead(xPin));
   Serial.print(" | Y: ");
@@ -153,6 +158,7 @@ void loop() {
   //CommandScheduler.run();
 }
 
+// DONE
 void towerStackBlocks() {
   byte tower[8] = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
   int direction = 1; // 1 for moving right, -1 for moving left
@@ -170,7 +176,7 @@ void towerStackBlocks() {
     }
 
     tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); // shift the active level left or right, depending on direction
-    if (digitalRead(buttonPin) && lastButtonState == false) { // if the button is pressed
+    if (buttonPress && !lastButtonState) { // if the button is pressed
       tower[1] &= tower[0]; // shave off the bits that missed
 
       // tower[6] is base
@@ -192,20 +198,55 @@ void towerStackBlocks() {
   }
 }
 
+// DONE
 void blackjack() {
+  // handle CPU turn
   int cpuTotal = random(1, 10);
   if (cpuTotal < 17) {
     cpuTotal += random(1, 10);
   }
 
+  // handle player turn
   int playerTotal = random(1, 10);
   printDigits(playerTotal);
   wait();
 
   bool playerStays = false;
+  bool playerIsChoosingHit = false;
+  bool buttonState = false;
+  bool lastButtonState = false;
+  int lastJoyState = 0;
+  int joyState = 0;
   while (!playerStays) {
-    //TODO handle inputs and logic
-    if (digitalRead(buttonPin)) {
+    lastButtonState = buttonState;
+    buttonState = digitalRead(buttonPin);
+
+    joyState = analogRead(yPin);
+    if (joyState > 800) {
+      joyState = 1;
+    } else if (joyState < 200) {
+      joyState = -1;
+    } else {
+      joyState = 0;
+    }
+
+    if (joyState == 1 && lastJoyState != 1) {
+      playerIsChoosingHit = true;
+    } else if (joyState == -1 && lastJoyState != -1) {
+      playerIsChoosingHit = false;
+    }
+
+    if (buttonState && !lastButtonState) {
+      if (playerIsChoosingHit) {
+        playerTotal += random(1, 10);
+        printDigits(playerTotal);
+        wait();
+        if (playerTotal > 21) {
+          playerStays = true;
+        }
+      } else {
+        playerStays = true;
+      }
     }
   }
 
@@ -217,12 +258,7 @@ void blackjack() {
   wait();
 }
 
-void dispTwoArrays(byte arrayOne[8], byte arrayTwo[8]) { // literally only a helper func for battleship
-  for (int i = 0; i < 8; i++) {
-    matrix.setRow(0, i, arrayOne[i] | arrayTwo[i]);
-  }
-}
-
+// getting there
 void battleship() {
   // set up field
   byte player[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -296,9 +332,9 @@ void battleship() {
 
     
     if (bitRead(cpu[guessY], byteToXY(guessX))) {
-      playerHits[guessY][guessX] = 1; //TODO change to bitWrite()
+      bitWrite(playerHits[guessY], guessX, 1);
     } else {
-      playerMisses[guessY][guessX] = 1;
+      bitWrite(playerMisses[guessY], guessX, 1);
     }
 
     // cpu block
@@ -315,9 +351,9 @@ void battleship() {
     }
 
     if (bitRead(player[guessY], byteToXY(guessX))) {
-      cpuHits[guessY][guessX] = 1;
+      bitWrite(cpuHits[guessY], guessX, 1);
     } else {
-      cpuMisses[guessY][guessX] = 1;
+      bitWrite(cpuMisses[guessY], guessX, 1);
     }
 
     // win/lose condition
@@ -340,6 +376,26 @@ void battleship() {
   }
 }
 
+/**
+ *  bool buttonState = false;
+  bool lastButtonState = false;
+  int lastJoyState = 0;
+  int joyState = 0;
+  while (!playerStays) {
+    lastButtonState = buttonState;
+    buttonState = digitalRead(buttonPin);
+
+    joyState = analogRead(yPin);
+    if (joyState > 800) {
+      joyState = 1;
+    } else if (joyState < 200) {
+      joyState = -1;
+    } else {
+      joyState = 0;
+    }
+ */
+
+// almost DONE
 void canoyonRunner() {
   int playerPos = 4;
   int canyonPos = 2;
@@ -356,18 +412,37 @@ void canoyonRunner() {
     B01000010,
     B01000010,
   };
+  int lastJoyState = 0;
+  int joyState = 0;
+  int playerSpeed = 100;
 
   while (!playerHasCrashed) {
+    lastJoyState = joyState;
     blit(display);
-    //TODO handle inputs
+    
+    joyState = analogRead(xPin);
+    if (joyState > 800) {
+      joyState = 1;
+    } else if (joyState < 200) {
+      joyState = -1;
+    } else {
+      joyState = 0;
+    }
 
-    if ((display[7] && playerPos) != 0) { //TODO make actually work right
+    if (joyState == 1 && lastJoyState != 1) {
+      playerPos += 1;
+    } else if (joyState == -1 && lastJoyState != -1) {
+      playerPos -= 1;
+    }
+    
+
+    if ((display[7] && playerPos) > 0) { //TODO make actually work right
       printDigits(rounds);
       wait();
       break;
     }
 
-    rounds++; //TODO make work right
+    rounds++; //TODO make work right and player speed
     if (rounds % 10 == 0) {
       canyonPos += random(-1, 1);
       canyonPos = clamp(canyonPos, 0, 7);
@@ -377,79 +452,89 @@ void canoyonRunner() {
       clamp(canyonWidth, 1, 8);
     }
     if (rounds % 20 == 0) {
-      //TODO speed up player or something idk
+      playerSpeed -= 1;
     }
   }
 }
 
+// close
 void tetris() {
-  //pieces[] = {{B11, B11, B11}, /* TODO */};
-  /**lost = false;
-  piece_loc = vector(0, 0)
-  piece = random.choice(pieces);
-  piecePlaced = false;
-  board = {B0, B0, B0, B0, B0, B0, B0, B0};
+  byte pieces[3][3] = {
+    {
+      B1,
+      B1,
+      B1,
+    },
+    {
+      B00,
+      B01,
+      B11
+    },
+    {
+      B00,
+      B11,
+      B11
+    },
+  };
+
+  bool lost = false;
+  int pieceX, pieceY = 7;
+  int piece = random(0, 2);
+  bool piecePlaced = false;
+  byte board[8] = {B0, B0, B0, B0, B0, B0, B0, B0};
+  bool enoughTimeHasPassed = false;
+  int score = 0;
+  int rotation = 0;
+  bool lastButtonState;
+  bool buttonState;
   
   while (!lost) {
-    display(board); // show all current placed pieces
-    blit(piece, piece_loc); // display current active piece
+    lastButtonState = buttonState;
+    buttonState = digitalRead(buttonPin);
+
+    blit(board); // show all current placed pieces
+    //TODO blit(piece, piece_loc); // display current active piece
 
     if (enoughTimeHasPassed || joystickDown()) { // player and time can move down. Piece does not move up, ever. 
-      piece_loc[1] -= 1; // move the y down 1
+      pieceY -= 1; // move the y down 1
     }
 
-    if (buttonPressed()) {
-      piece = rotate(piece);
+    if (buttonState && !lastButtonState) {
+      rotation = ++rotation % 4;
+      lastButtonState = true;
     }
 
-    //TODO make this so that sensitivity is less and you can actually be precise and stuff
-    piece_loc[0] = clamp(piece_loc[0] + (1 * joystickXdir()), 0, 7); // handle x axis movement
+    //TODO handle X movement
+    pieceX = clamp(pieceX + (1), 0, 7);
 
-    // maybe just: if ((piece && board) > 0) but no because needs to be at piece location whatever
-    if ((piece[0] && board[piece_loc[1] - 1]) != 0) { // TODO fix this this is really wonky collision and doesn't handle edge case of colliding with floor
-      board.blit(piece, piece_loc - 1); // also TODO fix
-      piece_loc = 0, 0;
-      piece = random.choice(pieces);
+    if (pieceY && bitRead(board[pieceY + 1], byteToXY(pieceX))) {
+      //TODO add piece to board
       score++;
+      piece = random(0, 2);
+      pieceX, pieceY = 7;
     }
 
-    flip(); // flip everything to the screen
-  }
-  displayNumbers(score);
-  waitForButtonPress();
-  break;*/
+    //TODO handle level clears
 
-  /*
-   * initialize and all that
-   * pieces = {{B100, B110, B100}, etc.}
-   * while not playerHasLost
-   *    nextPiece = random.choice(pieces)
-   *    pieceLoc = 0
-   *    display(board)
-   *    display(nextPiece)
-   *    pieceLoc -= 1
-   *    if joystick == left and pieceX > 0:
-   *        pieceX -= 1
-   *    elif joystick == right and pieceX < 8:
-   *        pieceX += 1
-   *    elif buttonPressed():
-   *        rotate(nextPiece); // yeah rotation will be hard
-   *    if joystick == down:
-   *        //do some weird collision stuff
-   *    if topRowHasAPiece:
-   *        lose();
-   *        quitToTitle();
-   */
+    if (board[0] > 0) {
+      lost = true;
+    }
+  }
+  printDigits(score);
+  wait();
 }
 
+// not even close
 void unblockMe() {
   //yeah nope
 }
 
+// not even close
 void timer() {
   //useless? not even a game but sure I guess
 }
 
+// almost DONE
 void dinoGame() {
   bool playerHasCrashed = false;
   int score = 0;
@@ -459,22 +544,34 @@ void dinoGame() {
   int obs_y = 0;
   int obstacle = 0;
   byte obstacles[5][2] = {
-    {B00, B11},   // airplane
+    {B000, B011}, // airplane
     {B010, B111}, // cloud
     {B001, B011}, // bush
-    {B00, B11},   // rock
-    {B01, B01}    // cactus
+    {B000, B011}, // rock
+    {B001, B001}  // cactus
   };
   int speed = 1; // higher is faster
+  bool isJumping = false;
+  bool lastButtonState = false;
+  bool buttonState = false;
   while (!playerHasCrashed) {
+    lastButtonState = buttonState;
+    buttonState = digitalRead(buttonPin);
+
     // do physics
     //TODO make this occur only once every X seconds or something
     player_vel += -2;
     player_y += player_vel;
 
-    //TODO handle inputs
-    //TODO add ground collision so you can't infinitely jump
-    player_vel += 10;
+    if (player_y == 0) { // reset jump flag
+      isJumping = false;
+    }
+
+    // handle jumping and inputs
+    if (!isJumping && buttonState && !lastButtonState) { // can't infinitely jump
+      player_vel += 5;
+      isJumping = true;
+    }
 
     obs_x -= speed;
     if (obs_x > 5)  { // if the obstacle _could_ collide with the player
@@ -490,25 +587,28 @@ void dinoGame() {
     } else {
       obs_y = 1; //???
     }
-    //TODO draw obstacle
 
     matrix.clearDisplay(0); // clear the screen
     matrix.setRow(0, 0, B11111111); // draw the ground
     matrix.setLed(0, player_y + 1, 6, true); // draw the player
+
 
     //TODO make this occur only once every X seconds
     speed += 1;
   }
 }
 
+// not even close
 void snake() {
   // i literally have no idea
 }
 
+// not even close
 void reactionTimer() {
   // idk
 }
 
+// not close
 void options() {
   // i have no idea how I'm going to implement this
   /*
@@ -522,18 +622,18 @@ void options() {
    */
 }
 
-/*byte[8] pinball = {
-  B00000000,
-  B11000011,
-  B10000001,
-  B00011000,
-  B00011010,
-  B00000010,
-  B10000110,
-  B01001010
-}*/
-
+// not close
 void pinball() {
+  /*byte[8] pinball = {
+    B00000000,
+    B11000011,
+    B10000001,
+    B00011000,
+    B00011010,
+    B00000010,
+    B10000110,
+    B01001010
+  }*/
   int lives = 3;
   int x = 7;
   int y = 0;
@@ -548,33 +648,91 @@ void pinball() {
   }
 }
 
+// DONE
 void guessingGame() {
   /* Standard guessing game */
   int number = random(1, 20);
   int playerGuess = 0;
-  bool playerHasGuessed;
+  bool playerHasGuessed = false;
+  int joyState = 0;
+  int lastJoyState = 0;
+  bool lastButtonState = false;
+  bool buttonState = false;
+  byte upArrow[8] = {
+    B00000000,
+    B00011000,
+    B00111100,
+    B01011010,
+    B00011000,
+    B00011000,
+    B00011000,
+    B00000000,
+  };
+  byte downArrow[8] = {
+    B00000000,
+    B00011000,
+    B00011000,
+    B00011000,
+    B01011010,
+    B00111100,
+    B00011000,
+    B00000000,
+  };
+
   while (true) {
     playerHasGuessed = false;
     while (!playerHasGuessed) {
+      lastJoyState = joyState;
+      lastButtonState = buttonState;
       printDigits(playerGuess);
-      //TODO handle inputs
+
+      // handle inputs
+      joyState = analogRead(yPin);
+      if (joyState > 800) {
+        joyState = 1;
+      } else if (joyState < 200) {
+        joyState = -1;
+      } else {
+        joyState = 0;
+      }
+
+      // handle inc/dec
+      if (joyState == 1 && lastJoyState != 1) {
+        playerGuess += 1;
+      } else if (joyState == -1 && lastJoyState != -1) {
+        playerGuess -= 1;
+      }
+
+      // wrap inputs
+      if (playerGuess < 1) {
+        playerGuess = 20;
+      } else if (playerGuess > 20) {
+        playerGuess = 1;
+      }
+
+      // handle guess
+      buttonState = digitalRead(buttonPin);
+      if (buttonState && !lastButtonState) {
+        playerHasGuessed = true;
+      }
     }
 
     if (playerGuess == number) {
       blit(win);
+      wait();
       break;
     } else if (playerGuess < number) {
-      //TODO display ^ up arrow ^ or something
+      blit(upArrow);
+      wait();
     } else if (playerGuess > number) {
-      //TODO display V down arrow V or something
+      blit(downArrow);
+      wait();
     }
   }
 }
 
+// getting there
 void calculator() { // the heck daniel that's not even a game. Although, according to some random YouTube video title I saw you can speedrun it
-  /* and here come the implementation comments
-   * or not I think I can write it in (mostly) one go
-   */
   int num1 = 0;
   int num2 = 0;
   double result = 0;
@@ -615,6 +773,7 @@ void calculator() { // the heck daniel that's not even a game. Although, accordi
   printDigits(result);
 }
 
+// DONE
 void coinFlip() { // yeah this isn't a game so what deal with it
   byte heads[8] = {
     B00111100,
@@ -656,7 +815,8 @@ void coinFlip() { // yeah this isn't a game so what deal with it
   wait();
 }
 
-void racingGame() { // yeah idk this is going to be weird and rather large (like, maybe larger than Battleship)
+// not close
+void racingGame() { // yeah idk this is going to be weird and rather large (like, ~maybe~ def larger than Battleship)
   int heading;
   int speed;
   int location;
@@ -794,4 +954,39 @@ void racingGame() { // yeah idk this is going to be weird and rather large (like
     B00000100,
     B11111000
   };
+}
+
+// getting there
+void tron() {
+  byte field[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int playerX = 0;
+  int pXvel = 1;
+  int pYvel, playerY = 0;
+
+  int cpuX = 7; // start opposite player
+  int cXvel = -1;
+  int cYvel, cpuY = 0;
+
+  bool over = false;
+  while (!over) { //TODO handle inputs
+    playerX += pXvel;
+    playerY += pYvel;
+
+    for (int i = 0; i < 8; i++) {
+      //TODO handle AI
+    }
+    
+    cpuX += cXvel;
+    cpuY += cYvel;
+
+    if (bitRead(field[playerY], byteToXY(playerX))) { // player collision
+      over = true;
+      blit(lose);
+      wait();
+    } else if (bitRead(field[cpuY], cpuX)) { // computer collision
+      over = true;
+      blit(win);
+      wait();
+    }
+  }
 }
