@@ -18,6 +18,7 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - calculator???
  - guessing game?
  - coin flip
+ - tron
 
 # List of games that are just kinda vibin right now
  - paint
@@ -38,7 +39,6 @@ programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a 
  - flappy bird
  - crossy road
  - simon says (memory game)
- - tron
  - a screensaver (why the heck would you want this tho?)
  - rythym game (ex beatsaber)
  - racing game (obviously 2D)

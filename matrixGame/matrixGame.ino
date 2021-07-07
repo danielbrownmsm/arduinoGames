@@ -259,7 +259,7 @@ void blackjack() {
 }
 
 // getting there
-void battleship() {
+void battleship() { // this is so freakin long
   // set up field
   byte player[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   byte playerMisses[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -275,23 +275,52 @@ void battleship() {
   bool cursorOn = false;
   int cursorX = 0;
   int cursorY = 0;
+  int lastXState = 0;
+  int lastYState = 0;
+  int xState = 0;
+  int yState = 0;
+  bool buttonState = false;
+  bool lastButtonState = false;
 
-  /* PRV | CUR | VAL
-   *  0  |  0  |  0
-   *  0  |  L  | -1
-   *  L  |  0  |  ???
-   *  L  |  L  | -2
-   *  L  |  R  |  ???
-   *  0  |  R  |  1
-   *  R  |  0  |  ???
-   *  R  |  R  |  2
-   *  R  |  L  |  ???
-   */
-  int lastXState = 0; // 0 is neutral, -1 is going from 0 to left, -2 is left, ???, 1 is going from 0 to right, 2 is right, ???
-  int lastYState = 0; // same as above
-  //Battleship playerShips
   while(!playerDonePlacing) {
-    //TODO logic
+    blit(player);
+
+    lastButtonState = buttonState;
+    lastXState = xState;
+    lastYState = yState;
+
+    xState = analogRead(xPin);
+    if (xState > 800) {
+      xState = 1;
+    } else if (xState < 200) {
+      xState = -1;
+    } else {
+      xState = 0;
+    }
+
+    yState = analogRead(xPin);
+    if (yState > 800) {
+      yState = 1;
+    } else if (yState < 200) {
+      yState = -1;
+    } else {
+      yState = 0;
+    }
+
+    buttonState = digitalRead(buttonPin);
+
+    // now for, you know, actual ships
+    bool horizontal = random(1);
+    int shipSize = random(1, 4);
+    if (horizontal) {
+      int shipX = random(7 - shipSize);
+      int shipY = random(7);
+    } else {
+      int shipX = random(7);
+      int shipY = random(7 - shipSize);
+    }
+
+    //TODO handle placing ships
   }
 
   //CPU placing time
@@ -332,9 +361,9 @@ void battleship() {
 
     
     if (bitRead(cpu[guessY], byteToXY(guessX))) {
-      bitWrite(playerHits[guessY], guessX, 1);
+      bitSet(playerHits[guessY], guessX);
     } else {
-      bitWrite(playerMisses[guessY], guessX, 1);
+      bitSet(playerMisses[guessY], guessX);
     }
 
     // cpu block
@@ -351,9 +380,9 @@ void battleship() {
     }
 
     if (bitRead(player[guessY], byteToXY(guessX))) {
-      bitWrite(cpuHits[guessY], guessX, 1);
+      bitSet(cpuHits[guessY], guessX);
     } else {
-      bitWrite(cpuMisses[guessY], guessX, 1);
+      bitSet(cpuMisses[guessY], guessX);
     }
 
     // win/lose condition
@@ -395,12 +424,13 @@ void battleship() {
     }
  */
 
-// almost DONE
+// DONE (i think)
 void canoyonRunner() {
   int playerPos = 4;
   int canyonPos = 2;
   int canyonWidth = 6;
   int rounds = 0;
+  int score = 0;
   bool playerHasCrashed = false;
   byte display[8] = {
     B01000010,
@@ -414,11 +444,15 @@ void canoyonRunner() {
   };
   int lastJoyState = 0;
   int joyState = 0;
-  int playerSpeed = 100;
+  int playerSpeed = 3000;
+  unsigned long lastTime = 0;
+  unsigned long now = 0;
+  bool updatePlayerPos = false;
+  bool movePlayerRight = false;
 
   while (!playerHasCrashed) {
+    now = millis();
     lastJoyState = joyState;
-    blit(display);
     
     joyState = analogRead(xPin);
     if (joyState > 800) {
@@ -430,29 +464,55 @@ void canoyonRunner() {
     }
 
     if (joyState == 1 && lastJoyState != 1) {
-      playerPos += 1;
+      updatePlayerPos = true;
+      movePlayerRight = true;
     } else if (joyState == -1 && lastJoyState != -1) {
-      playerPos -= 1;
+      updatePlayerPos = true;
+      movePlayerRight = false;
     }
     
-
-    if ((display[7] && playerPos) > 0) { //TODO make actually work right
-      printDigits(rounds);
+    for (int i = 7; i > 1; i--) { // move everything down a level
+      display[i] = display[i-1];
+    }
+    bitSet(display[0], canyonPos); // can I get a yeah for doing exactly what we did previously?
+    bitSet(display[0], canyonPos + canyonWidth); // and for storing data on the screen?
+    blit(display);
+    matrix.setLed(0, 7, byteToXY(playerPos), true);
+    
+    if (((display[7] && playerPos) > 0) || (playerPos <= canyonPos) || (playerPos >= canyonPos + canyonWidth)) {
+      printDigits(score);
       wait();
       break;
     }
 
-    rounds++; //TODO make work right and player speed
-    if (rounds % 10 == 0) {
-      canyonPos += random(-1, 1);
-      canyonPos = clamp(canyonPos, 0, 7);
-    } 
-    if (rounds % 15 == 0) {
-      canyonWidth -= 1;
-      clamp(canyonWidth, 1, 8);
-    }
-    if (rounds % 20 == 0) {
-      playerSpeed -= 1;
+    if (now - lastTime > playerSpeed) { // if time has passed
+
+
+      lastTime = now; // update time
+      rounds++; // increase rounds
+      if (rounds % 10 == 0) { // every 10 rounds
+        canyonPos += random(-1, 1); // move the canyon to the left or right
+        canyonPos = clamp(canyonPos, 0, 7); // but make sure it stays on screen
+        score++;
+      }
+
+      if (rounds % 15 == 0) { // every 15 rounds
+        canyonWidth -= 1; // shrink the canyon
+        canyonWidth = clamp(canyonWidth, 2, 8); // but make sure it doesn't get too small
+      }
+
+      if (rounds % 20 == 0) { // every 20 rounds
+        playerSpeed -= 1; // speed player/ticks up
+        playerSpeed = clamp(playerSpeed, 100, 3000);
+      }
+
+      if (updatePlayerPos) { // update player position
+        if (movePlayerRight) {
+          playerPos += 1;
+        } else {
+          playerPos -= 1;
+        }
+      }
     }
   }
 }
@@ -608,7 +668,7 @@ void reactionTimer() {
   // idk
 }
 
-// not close
+// not even close
 void options() {
   // i have no idea how I'm going to implement this
   /*
@@ -956,7 +1016,7 @@ void racingGame() { // yeah idk this is going to be weird and rather large (like
   };
 }
 
-// getting there
+// almost DONE
 void tron() {
   byte field[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   int playerX = 0;
@@ -967,8 +1027,41 @@ void tron() {
   int cXvel = -1;
   int cYvel, cpuY = 0;
 
+  int xState = 0;
+  int lastXState = 0;
+  int yState = 0;
+  int lastYState = 0;
+
+  unsigned long now = 0;
+  unsigned long lastTime = 0;
+
   bool over = false;
-  while (!over) { //TODO handle inputs
+  while (!over) {
+    lastXState = xState;
+    lastYState = yState;
+
+    xState = analogRead(xPin);
+    yState = analogRead(yPin);
+
+    if (xState > 800) {
+      xState = 1;
+    } else if (xState < 200) {
+      xState = -1;
+    } else {
+      xState = 0;
+    }
+
+    if (yState > 800) {
+      yState = 1;
+    } else if (yState < 200) {
+      yState = -1;
+    } else {
+      yState = 0;
+    }
+
+    pXvel = clamp(xState, -1, 1);
+    pYvel = clamp(yState, -1, 1);
+
     playerX += pXvel;
     playerY += pYvel;
 
@@ -978,6 +1071,8 @@ void tron() {
     
     cpuX += cXvel;
     cpuY += cYvel;
+
+    //TODO make updates only happen once every X seconds
 
     if (bitRead(field[playerY], byteToXY(playerX))) { // player collision
       over = true;
