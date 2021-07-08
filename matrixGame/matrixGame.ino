@@ -1,3 +1,4 @@
+
 #include <LedControl.h>
 
 // PINS
@@ -26,16 +27,16 @@
 
 // CONSTANT ARRAY SCREEN THINGS
 const byte digits[10][5] = {
-  {B00000111, B00000101, B00000101, B00000101, B00000111},
+  {B00000010, B00000101, B00000101, B00000101, B00000010},
   {B00000001, B00000011, B00000001, B00000001, B00000001}, 
-  {B00000111, B00000001, B00000111, B00000100, B00000111}, 
-  {B00000111, B00000001, B00000111, B00000001, B00000111}, 
+  {B00000110, B00000001, B00000011, B00000100, B00000111}, 
+  {B00000110, B00000001, B00000110, B00000001, B00000110}, 
   {B00000101, B00000101, B00000111, B00000001, B00000001}, 
-  {B00000111, B00000100, B00000111, B00000001, B00000111}, 
-  {B00000111, B00000100, B00000111, B00000101, B00000111}, 
+  {B00000111, B00000100, B00000110, B00000001, B00000110}, 
+  {B00000011, B00000100, B00000110, B00000101, B00000011}, 
   {B00000111, B00000001, B00000010, B00000010, B00000100}, 
   {B00000111, B00000101, B00000111, B00000101, B00000111}, 
-  {B00000111, B00000101, B00000111, B00000001, B00000111}
+  {B00000110, B00000101, B00000111, B00000001, B00000110}
 }; // everything at it's index
 byte win[8] = { // maybe???
   B00111100,
@@ -104,18 +105,20 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 
 // takes an array of bytes and writes them to the display
 void blit(byte array[8]) {
-  for (unsigned int row = 0; row < sizeof(array); row++) {
+  for (unsigned int row = 0; row < 8; row++) {
     matrix.setRow(0, row, array[row]);
   }
 }
 
 // prints a number (between 0 and 99) to the screen. This is non-blocking
 void printDigits(int number) {
+  matrix.clearDisplay(0);
   int onesDigit = number % 10;
   int tensDigit = (number / 10) % 10; // because result is int it removes stuff after decimal
-  for (int i = 1; i < 6; i++) { // b/c we only have 5 rows of number to display
-    matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
+  for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
+    matrix.setRow(0, i+2, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // yes I just copy-pasted from old code. deal with it
   }
+  delay(50);
 }
 
 void dispTwoArrays(byte arrayOne[8], byte arrayTwo[8]) { // literally only a helper func for battleship
@@ -146,19 +149,19 @@ void loop() {
   Serial.print("\n");
   delay(300);*/
 
-  Serial.println("tower");
-  matrix.clearDisplay(0);
-  towerStackBlocks();
+  //Serial.println("tower");
+  //matrix.clearDisplay(0);
+  //towerStackBlocks();
   
-  Serial.println("21");
-  matrix.clearDisplay(0);
-  blackjack();
+  //Serial.println("21");
+  //matrix.clearDisplay(0);
+  //blackjack();
   
   Serial.println("canyon");
   matrix.clearDisplay(0);
   canyonRunner();
   
-  Serial.println("guess");
+  /*Serial.println("guess");
   matrix.clearDisplay(0);
   guessingGame();
   
@@ -184,68 +187,109 @@ void loop() {
   
   Serial.println("calc");
   matrix.clearDisplay(0);
-  calculator();
+  calculator();*/
   
-  Serial.println("wait 10s");
-  delay(10000);
-
   //index = 0;
   //button.onPress(games[index].run());
   //CommandScheduler.run();
 }
 
-// DONE
+// DONE and tested still needs work
 void towerStackBlocks() {
   byte tower[8] = {B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110, B01111110};
-  int direction = 1; // 1 for moving right, -1 for moving left
+  int dir = 1; // 1 for moving right, -1 for moving left
   int score = 0;
   bool lastButtonState = false; // used for
   bool buttonPress = false; // buffering/toggling inputs
+  bool stack = false;
+  unsigned long now = 0;
+  unsigned long lastTime = 0;
+  unsigned int movSpeed = 300;
+  //TODO add difficulty so it gets faster the higher you go, regardless of tower width
 
   while(true) {
     lastButtonState = buttonPress;
     buttonPress = !digitalRead(buttonPin);
+
+    if (buttonPress && !lastButtonState) { // if the button is pressed
+        stack = true; // then we should stack
+        Serial.println("BP");
+    }
     
     blit(tower);
-    if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // if we've reached one of the edges
-      direction *= -1; // invert the direction
-    }
+    now = millis();
 
-    tower[0] = ((direction > 0) ? (tower[0] >> 1) : (tower[0] << 1)); // shift the active level left or right, depending on direction
-    if (buttonPress && !lastButtonState) { // if the button is pressed
-      tower[1] &= tower[0]; // shave off the bits that missed
+    if (now - lastTime > movSpeed) {
+        lastTime = now;
+        if (bitRead(tower[0], 0) || bitRead(tower[0], 7)) { // if we've reached one of the edges
+          dir *= -1; // invert the direction
+        }
+    
+        if (stack) { // if we need to stack
+          stack = false;
+          tower[1] &= tower[0]; // shave off the bits that missed
+    
+          // tower[6] is base
+          // tower[0] is the moving level
+          // only 7 items (0-6) b/c top one is always empty/blank/off
+          for (int i = 7; i > 1; i--) { // move everything down a level
+            tower[i] = tower[i-1];
+          }
+          tower[0] = tower[1]; // and stack it
+          //TODO fix it stacking two at a time and all that
+          score++;
+        }
 
-      // tower[6] is base
-      // tower[0] is the moving level
-      // only 7 items (0-6) b/c top one is always empty/blank/off
-      for (int i = 6; i > 1; i--) { // move everything down a level
-        tower[i] = tower[i-1];
-      }
-      tower[0] = tower[1]; // and stack it
-      score++;
+        tower[0] = ((dir > 0) ? (tower[0] >> 1) : (tower[0] << 1)); // shift the active level left or right, depending on direction
+    
+        if (tower[0] == 0) { // lose condition
+          Serial.println("lost");
+          printDigits(score);
+          WAIT_MACRO
+          return; // exit or something idk
+        }
     }
-
-    if (tower[0] == 0) { // lose condition
-      printDigits(score);
-      WAIT_MACRO
-      return; // exit or something idk
-    }
+    delay(10);
 
   }
 }
 
-// DONE
+// DONE and tested and works. digits might need some work but it's just graphics so /shrug
 void blackjack() {
+  //graphics
+  byte hit[8] = {
+    B00000000,
+    B00011000,
+    B00011000,
+    B01111110,
+    B01111110,
+    B00011000,
+    B00011000,
+    B00000000,
+  };
+  byte stay[8] = {
+    B00000000,
+    B00000000,
+    B00000000,
+    B01111110,
+    B01111110,
+    B00000000,
+    B00000000,
+    B00000000,
+  };
   // handle CPU turn
   int cpuTotal = random(1, 10);
-  if (cpuTotal < 17) {
-    cpuTotal += random(1, 10);
+  while (cpuTotal < 17) {
+    cpuTotal += random(1, 10);    
   }
+  Serial.println(cpuTotal);
 
   // handle player turn
   int playerTotal = random(1, 10);
   printDigits(playerTotal);
+  delay(200);
   WAIT_MACRO
+  delay(300);
 
   bool playerStays = false;
   bool playerIsChoosingHit = false;
@@ -272,10 +316,17 @@ void blackjack() {
       playerIsChoosingHit = false;
     }
 
+    if (playerIsChoosingHit) {
+        blit(hit);
+    } else {
+        blit(stay);
+    }
+
     if (buttonState && !lastButtonState) {
       if (playerIsChoosingHit) {
         playerTotal += random(1, 10);
         printDigits(playerTotal);
+        delay(200);
         WAIT_MACRO
         if (playerTotal > 21) {
           playerStays = true;
@@ -284,6 +335,7 @@ void blackjack() {
         playerStays = true;
       }
     }
+    delay(20);
   }
 
   if (cpuTotal > 21 || (playerTotal > cpuTotal && playerTotal < 22)) {
@@ -291,6 +343,7 @@ void blackjack() {
   } else {
     blit(lose);
   }
+  delay(300);
   WAIT_MACRO
 }
 
@@ -468,7 +521,7 @@ void canyonRunner() {
   int rounds = 0;
   int score = 0;
   bool playerHasCrashed = false;
-  byte display[8] = {
+  byte disp[8] = {
     B01000010,
     B01000010,
     B01000010,
@@ -478,18 +531,29 @@ void canyonRunner() {
     B01000010,
     B01000010,
   };
-  int lastJoyState = 0;
+  int previousPoses[8] {
+    0, 0, 0, 0, 0, 0, 0, 0
+  }; //HACK TODO FIXME BUG XXX AND SO ON basically i just store the last 8 positions so I know which canyonPos to check against for out-of-bounds because you can escape if you
+  // move the stick at the right time so there needs to be OOB but you can't use the current canyonPos because that is seven rows above you and you might not be able to move
+  // to get in it with the walls where they are in _your_ level so if there is a better way to do this then sure but the (time) complexity of checking to determine bounds 
+  // from just the display array seems too high but if you want to try it go ahead
+  int previousWidths[8] = {0,0,0,0,0,0,0,0};
+  int lastJoyState = 0;  
   int joyState = 0;
-  unsigned int playerSpeed = 3000;
+  unsigned int playerSpeed = 400;
   unsigned long lastTime = 0;
   unsigned long now = 0;
   bool updatePlayerPos = false;
   bool movePlayerRight = false;
+  int roundsToWait = random(3, 5);
+  bool blinkState = true;
 
   while (!playerHasCrashed) {
     now = millis();
     lastJoyState = joyState;
-    
+    blinkState = !blinkState;
+    matrix.setLed(0, 7, byteToXY(playerPos), blinkState);
+
     joyState = analogRead(xPin);
     if (joyState > 800) {
       joyState = 1;
@@ -506,50 +570,85 @@ void canyonRunner() {
       updatePlayerPos = true;
       movePlayerRight = false;
     }
-    
-    for (int i = 7; i > 1; i--) { // move everything down a level
-      display[i] = display[i-1];
-    }
-    bitSet(display[0], canyonPos); // can I get a yeah for doing exactly what we did previously?
-    bitSet(display[0], canyonPos + canyonWidth); // and for storing data on the screen?
-    blit(display);
-    matrix.setLed(0, 7, byteToXY(playerPos), true);
-    
-    if (((display[7] && playerPos) > 0) || (playerPos <= canyonPos) || (playerPos >= canyonPos + canyonWidth)) {
-      printDigits(score);
-      WAIT_MACRO
-      break;
+    Serial.println(canyonPos);
+    if ((disp[7] & (1 << playerPos)) && rounds > 3) {
+        printDigits(score);
+        WAIT_MACRO
+        return;
+    } else if (playerPos >= previousPoses[7] || playerPos <= previousPoses[7] - previousWidths[7]) {
+        if (rounds > 7) {
+            Serial.print(playerPos);
+            Serial.print("|");
+            Serial.print(previousPoses[7]);
+            Serial.print("|");
+            Serial.print(previousWidths[7]);
+            Serial.print("\n");
+            //printDigits(score);
+            //WAIT_MACRO
+            //return;            
+        }
     }
 
     if (now - lastTime > playerSpeed) { // if time has passed
-
-
+      for (int i = 7; i > 0; i--) { // move everything down a level
+        disp[i] = disp[i-1];
+        //Serial.println(i);
+      }
+      disp[0] = 0;
+      bitSet(disp[0], canyonPos); // can I get a yeah for doing exactly what we did previously?
+      bitSet(disp[0], canyonPos + canyonWidth); // and for storing data on the screen?
+      blit(disp);
+ 
       lastTime = now; // update time
       rounds++; // increase rounds
-      if (rounds % 10 == 0) { // every 10 rounds
-        canyonPos += random(-1, 1); // move the canyon to the left or right
-        canyonPos = clamp(canyonPos, 0, 7); // but make sure it stays on screen
+
+      if (rounds % 30 == 0) { // every 15 rounds
+        canyonWidth -= 1; // shrink the canyon
+        canyonWidth = clamp(canyonWidth, 3, 8); // but make sure it doesn't get too small
+      }
+      
+      if (rounds % roundsToWait == 0) { // every 3 rounds
+        roundsToWait = random(3, 5);
+        int num = random(-1, 1);
+        if (num == 0) {
+            num = 1;
+        }
+        canyonPos += num; // move the canyon to the left or right
+        
+        if (canyonPos == 7) {
+            canyonPos -= 1;
+        } else if (canyonPos == 0) {
+            canyonPos += 1;
+        }
+
+        previousPoses[0] = canyonPos;//TODO optimize this
+        previousWidths[0] = canyonWidth;
+        for (int i = 7; i > 0; i--) {
+            previousPoses[i] = previousPoses[i - 1];
+            previousWidths[i] = previousWidths[i - 1];
+        }
+        
         score++;
       }
 
-      if (rounds % 15 == 0) { // every 15 rounds
-        canyonWidth -= 1; // shrink the canyon
-        canyonWidth = clamp(canyonWidth, 2, 8); // but make sure it doesn't get too small
-      }
-
-      if (rounds % 20 == 0) { // every 20 rounds
+      if (rounds % 10 == 0) { // every 20 rounds
         playerSpeed -= 1; // speed player/ticks up
         playerSpeed = clamp(playerSpeed, 100, 3000);
       }
 
       if (updatePlayerPos) { // update player position
-        if (movePlayerRight) {
+        if (movePlayerRight && playerPos < 7) {
           playerPos += 1;
         } else {
-          playerPos -= 1;
+          if (playerPos > 0) {
+              playerPos -= 1;
+          }
         }
+        movePlayerRight = false;
+        updatePlayerPos = false;
       }
     }
+    delay(50);
   }
 }
 
