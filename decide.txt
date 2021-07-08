@@ -18,6 +18,7 @@ pokemon
 checkers
 temple-run-but-not
 a platformer
+racing game
 
 ## out of already started which ones we want on the trip
  - tetris

@@ -3,13 +3,16 @@
 // PINS
 #define xPin A0
 #define yPin A1
-#define buttonPin A2 // !! NOTE !! b/c of the wiring and stuff, the analogRead will read some random values (seed PRNG, anyone?) when unpressed, and ~1020 when pressed (a check for >1010 should work just fine))
+#define buttonPin 3 //TODO update wiring/circuit file or whatever
+// !! NOTE !! the button reads 0 for pressed and 1 for unpressed. Read it accordingly
 
 #define buzzerPin 8
 
 #define dinPin 5
 #define csPin 6
 #define clkPin 7
+
+#define WAIT_MACRO while(digitalRead(buttonPin)) {delay(100);}
 
 // CONTROLS
 //int x_val; // x value of the joystick
@@ -32,7 +35,7 @@ const byte digits[10][5] = {
   {B00000111, B00000100, B00000111, B00000101, B00000111}, 
   {B00000111, B00000001, B00000010, B00000010, B00000100}, 
   {B00000111, B00000101, B00000111, B00000101, B00000111}, 
-  {B00000111, B00000101, B00000101, B00000101, B00000111}
+  {B00000111, B00000101, B00000111, B00000001, B00000111}
 }; // everything at it's index
 byte win[8] = { // maybe???
   B00111100,
@@ -79,7 +82,7 @@ void setup() {
   // set all the pinmodes
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
-  pinMode(buttonPin, INPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
 
   // turn off the built-in LED (13 on the ATMega2560, may vary)
@@ -101,7 +104,7 @@ int byteToXY(int val) { // really I would say Cartesian but who has space to wri
 
 // takes an array of bytes and writes them to the display
 void blit(byte array[8]) {
-  for (int row = 0; row < sizeof(array); row++) {
+  for (unsigned int row = 0; row < sizeof(array); row++) {
     matrix.setRow(0, row, array[row]);
   }
 }
@@ -110,15 +113,8 @@ void blit(byte array[8]) {
 void printDigits(int number) {
   int onesDigit = number % 10;
   int tensDigit = (number / 10) % 10; // because result is int it removes stuff after decimal
-  for (int i = 0; i < 5; i++) { // b/c we only have 5 rows of number to display
+  for (int i = 1; i < 6; i++) { // b/c we only have 5 rows of number to display
     matrix.setRow(0, i+1, (digits[tensDigit][i] << 4) | digits[onesDigit][i]); // this _should_ work. Maybe. Honestly tho it prob won't
-  }
-}
-
-// waits for a read on the button pin (so you can display things and wait for the player to continue)
-void wait() {
-  while (!digitalRead(buttonPin)) {
-    delay(100);
   }
 }
 
@@ -139,19 +135,59 @@ int clamp(int val, int min, int max) {
 }
 
 void loop() {
-  Serial.print("X: ");
+  //Serial.print("starting...");
+  //delay(300);
+  /*Serial.print("X: ");
   Serial.print(analogRead(xPin));
   Serial.print(" | Y: ");
   Serial.print(analogRead(yPin));
   Serial.print(" | SW: ");
-  Serial.print(analogRead(buttonPin));
+  Serial.print(digitalRead(buttonPin));
   Serial.print("\n");
-  delay(300);
+  delay(300);*/
 
+  Serial.println("tower");
+  matrix.clearDisplay(0);
   towerStackBlocks();
+  
+  Serial.println("21");
+  matrix.clearDisplay(0);
   blackjack();
-  canoyonRunner();
+  
+  Serial.println("canyon");
+  matrix.clearDisplay(0);
+  canyonRunner();
+  
+  Serial.println("guess");
+  matrix.clearDisplay(0);
   guessingGame();
+  
+  Serial.println("coin");
+  matrix.clearDisplay(0);
+  coinFlip();
+  
+  Serial.println("ship");
+  matrix.clearDisplay(0);
+  battleship();
+  
+  Serial.println("dino");
+  matrix.clearDisplay(0);
+  dinoGame();
+  
+  Serial.println("tron");
+  matrix.clearDisplay(0);
+  tron();
+  
+  Serial.println("bowl");
+  matrix.clearDisplay(0);
+  bowling();
+  
+  Serial.println("calc");
+  matrix.clearDisplay(0);
+  calculator();
+  
+  Serial.println("wait 10s");
+  delay(10000);
 
   //index = 0;
   //button.onPress(games[index].run());
@@ -164,11 +200,11 @@ void towerStackBlocks() {
   int direction = 1; // 1 for moving right, -1 for moving left
   int score = 0;
   bool lastButtonState = false; // used for
-  bool buttonPress = false;     // buffering/toggling inputs
+  bool buttonPress = false; // buffering/toggling inputs
 
   while(true) {
     lastButtonState = buttonPress;
-    buttonPress = digitalRead(buttonPin);
+    buttonPress = !digitalRead(buttonPin);
     
     blit(tower);
     if (bitRead(tower[0], 0) || bitRead(tower[0], 8)) { // if we've reached one of the edges
@@ -191,7 +227,7 @@ void towerStackBlocks() {
 
     if (tower[0] == 0) { // lose condition
       printDigits(score);
-      wait();
+      WAIT_MACRO
       return; // exit or something idk
     }
 
@@ -209,7 +245,7 @@ void blackjack() {
   // handle player turn
   int playerTotal = random(1, 10);
   printDigits(playerTotal);
-  wait();
+  WAIT_MACRO
 
   bool playerStays = false;
   bool playerIsChoosingHit = false;
@@ -219,7 +255,7 @@ void blackjack() {
   int joyState = 0;
   while (!playerStays) {
     lastButtonState = buttonState;
-    buttonState = digitalRead(buttonPin);
+    buttonState = !digitalRead(buttonPin);
 
     joyState = analogRead(yPin);
     if (joyState > 800) {
@@ -240,7 +276,7 @@ void blackjack() {
       if (playerIsChoosingHit) {
         playerTotal += random(1, 10);
         printDigits(playerTotal);
-        wait();
+        WAIT_MACRO
         if (playerTotal > 21) {
           playerStays = true;
         }
@@ -255,7 +291,7 @@ void blackjack() {
   } else {
     blit(lose);
   }
-  wait();
+  WAIT_MACRO
 }
 
 // getting there
@@ -307,7 +343,7 @@ void battleship() { // this is so freakin long
       yState = 0;
     }
 
-    buttonState = digitalRead(buttonPin);
+    buttonState = !digitalRead(buttonPin);
 
     // now for, you know, actual ships
     bool horizontal = random(1);
@@ -395,11 +431,11 @@ void battleship() { // this is so freakin long
 
     if (playerHitCount == cpuTotal) {
       blit(win);
-      wait();
+      WAIT_MACRO
       return;
     } else if (cpuHitCount == playerTotal) {
       blit(lose);
-      wait();
+      WAIT_MACRO
       return;
     }
   }
@@ -425,7 +461,7 @@ void battleship() { // this is so freakin long
  */
 
 // DONE (i think)
-void canoyonRunner() {
+void canyonRunner() {
   int playerPos = 4;
   int canyonPos = 2;
   int canyonWidth = 6;
@@ -444,7 +480,7 @@ void canoyonRunner() {
   };
   int lastJoyState = 0;
   int joyState = 0;
-  int playerSpeed = 3000;
+  unsigned int playerSpeed = 3000;
   unsigned long lastTime = 0;
   unsigned long now = 0;
   bool updatePlayerPos = false;
@@ -481,7 +517,7 @@ void canoyonRunner() {
     
     if (((display[7] && playerPos) > 0) || (playerPos <= canyonPos) || (playerPos >= canyonPos + canyonWidth)) {
       printDigits(score);
-      wait();
+      WAIT_MACRO
       break;
     }
 
@@ -538,29 +574,30 @@ void tetris() {
   };
 
   bool lost = false;
-  int pieceX, pieceY = 7;
+  int pieceX = 7;
+  int pieceY = 7;
   int piece = random(0, 2);
   bool piecePlaced = false;
   byte board[8] = {B0, B0, B0, B0, B0, B0, B0, B0};
   bool enoughTimeHasPassed = false;
   int score = 0;
   int rotation = 0;
-  bool lastButtonState;
-  bool buttonState;
+  bool lastButtonState = false;
+  bool buttonState = false;
   
   while (!lost) {
     lastButtonState = buttonState;
-    buttonState = digitalRead(buttonPin);
+    buttonState = !digitalRead(buttonPin);
 
     blit(board); // show all current placed pieces
     //TODO blit(piece, piece_loc); // display current active piece
 
-    if (enoughTimeHasPassed || joystickDown()) { // player and time can move down. Piece does not move up, ever. 
+    if (enoughTimeHasPassed /* || joystickDown()*/) { // player and time can move down. Piece does not move up, ever. 
       pieceY -= 1; // move the y down 1
     }
 
     if (buttonState && !lastButtonState) {
-      rotation = ++rotation % 4;
+      rotation = (++rotation) % 4;
       lastButtonState = true;
     }
 
@@ -581,7 +618,7 @@ void tetris() {
     }
   }
   printDigits(score);
-  wait();
+  WAIT_MACRO
 }
 
 // not even close
@@ -616,7 +653,7 @@ void dinoGame() {
   bool buttonState = false;
   while (!playerHasCrashed) {
     lastButtonState = buttonState;
-    buttonState = digitalRead(buttonPin);
+    buttonState = !digitalRead(buttonPin);
 
     // do physics
     //TODO make this occur only once every X seconds or something
@@ -771,7 +808,7 @@ void guessingGame() {
       }
 
       // handle guess
-      buttonState = digitalRead(buttonPin);
+      buttonState = !digitalRead(buttonPin);
       if (buttonState && !lastButtonState) {
         playerHasGuessed = true;
       }
@@ -779,14 +816,14 @@ void guessingGame() {
 
     if (playerGuess == number) {
       blit(win);
-      wait();
+      WAIT_MACRO
       break;
     } else if (playerGuess < number) {
       blit(upArrow);
-      wait();
+      WAIT_MACRO
     } else if (playerGuess > number) {
       blit(downArrow);
-      wait();
+      WAIT_MACRO
     }
   }
 }
@@ -855,7 +892,7 @@ void coinFlip() { // yeah this isn't a game so what deal with it
     B01000010,
     B00111100,
   };
-  int speed = 100;
+  int speed = 500;
   bool resultIsHeads = random(1);
   for (int i = 0; i < 20; i++) {
     if (resultIsHeads) {
@@ -872,7 +909,7 @@ void coinFlip() { // yeah this isn't a game so what deal with it
       speed = 800;
     }
   }
-  wait();
+  WAIT_MACRO
 }
 
 // not close
@@ -1077,11 +1114,73 @@ void tron() {
     if (bitRead(field[playerY], byteToXY(playerX))) { // player collision
       over = true;
       blit(lose);
-      wait();
+      WAIT_MACRO
     } else if (bitRead(field[cpuY], cpuX)) { // computer collision
       over = true;
       blit(win);
-      wait();
+      WAIT_MACRO
     }
   }
+}
+
+// not even close
+void ticTacToe() {
+  // i don't care enough for this one
+}
+
+// getting there
+void bowling() {
+  bool hasBowled = false;
+  int score = 0;
+  int angle = 0;
+  int xPosition = 4;
+  byte pins[4] = {
+    B10101010,    
+    B01010100,
+    B00101000,
+    B00010000,
+  };
+
+  while (!hasBowled) {
+    angle = analogRead(xPin) - 510;
+    if (analogRead(yPin) > 800) {
+      hasBowled = true;
+    }
+  }
+
+  for (int i = 0; i < 7; i++) {
+    // b/c xPosition is int, automatically ~rounds~ chops off small bits
+    xPosition += tan(angle) / 10; // 3 is speed. tune until graphics look good.
+    /**
+     *      X
+     *  ___________
+     *  \          |
+     *   \         |
+     *    \        | speed
+     *     \       |
+     *      \      |
+     *       \angle|
+     *        \    |
+     *         \   |
+     *          \  |
+     *           \ |
+     *            \|
+     * tan(angle) = X / speed
+     */
+
+    matrix.clearDisplay(0);
+    matrix.setRow(0, i, xPosition);
+
+    delay(200);
+  }
+
+  if (xPosition > 7 || xPosition < 0) {
+    blit(lose);
+    WAIT_MACRO
+    //TODO do something idk
+  }
+
+  //TODO make ball bigger
+  //round();
+
 }

@@ -1,26 +1,28 @@
 # arduinoGames
 programs for a small console consisting of an ATMega2560, 8x8 red LED matrix, a buzzer, and a 2-axis jostick with a button.
 
-# Games that have been completed
+# Games that have been tested and work
  - none
 
-# List of games that have been started on
- - snake
+# Games that have been completed (probably)
  - canyon runner
- - tetris
  - block stack
  - 21/blackjack
- - reaction timer
- - battleship?
- - options menu
- - pinball
- - google dino game
- - calculator???
  - guessing game?
  - coin flip
- - tron
 
-# List of games that are just kinda vibin right now
+# List of games that have been started on (roughly in order of completedness)
+ - tron
+ - battleship?
+ - google dino game
+ - tetris
+ - calculator
+ - options menu
+ - reaction timer
+ - pinball
+ - snake
+
+# List of games that are just kinda vibin right now (in absolutely no particular order)
  - paint
  - yahtzee?
  - timer?????
