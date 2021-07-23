@@ -1,4 +1,3 @@
-
 #include <LedControl.h>
 
 // PINS
@@ -149,19 +148,19 @@ void loop() {
   Serial.print("\n");
   delay(300);*/
 
-  //Serial.println("tower");
-  //matrix.clearDisplay(0);
-  //towerStackBlocks();
+  Serial.println("tower");
+  matrix.clearDisplay(0);
+  towerStackBlocks();
   
-  //Serial.println("21");
-  //matrix.clearDisplay(0);
-  //blackjack();
+  Serial.println("21");
+  matrix.clearDisplay(0);
+  blackjack();
   
   Serial.println("canyon");
   matrix.clearDisplay(0);
   canyonRunner();
   
-  /*Serial.println("guess");
+  Serial.println("guess");
   matrix.clearDisplay(0);
   guessingGame();
   
@@ -169,19 +168,19 @@ void loop() {
   matrix.clearDisplay(0);
   coinFlip();
   
-  Serial.println("ship");
+  /*Serial.println("ship");
   matrix.clearDisplay(0);
   battleship();
   
   Serial.println("dino");
   matrix.clearDisplay(0);
-  dinoGame();
+  dinoGame();*/
   
-  Serial.println("tron");
-  matrix.clearDisplay(0);
-  tron();
+  //Serial.println("tron");
+  //matrix.clearDisplay(0);
+  //tron();
   
-  Serial.println("bowl");
+  /*Serial.println("bowl");
   matrix.clearDisplay(0);
   bowling();
   
@@ -213,7 +212,7 @@ void towerStackBlocks() {
 
     if (buttonPress && !lastButtonState) { // if the button is pressed
         stack = true; // then we should stack
-        Serial.println("BP");
+        //Serial.println("BP");
     }
     
     blit(tower);
@@ -243,7 +242,7 @@ void towerStackBlocks() {
         tower[0] = ((dir > 0) ? (tower[0] >> 1) : (tower[0] << 1)); // shift the active level left or right, depending on direction
     
         if (tower[0] == 0) { // lose condition
-          Serial.println("lost");
+          //Serial.println("lost");
           printDigits(score);
           WAIT_MACRO
           return; // exit or something idk
@@ -282,7 +281,7 @@ void blackjack() {
   while (cpuTotal < 17) {
     cpuTotal += random(1, 10);    
   }
-  Serial.println(cpuTotal);
+  //Serial.println(cpuTotal);
 
   // handle player turn
   int playerTotal = random(1, 10);
@@ -844,7 +843,7 @@ void pinball() {
   }
 }
 
-// DONE
+// DONE and tested
 void guessingGame() {
   /* Standard guessing game */
   int number = random(1, 20);
@@ -911,17 +910,21 @@ void guessingGame() {
       if (buttonState && !lastButtonState) {
         playerHasGuessed = true;
       }
+      delay(50);
     }
 
     if (playerGuess == number) {
       blit(win);
+      delay(100);
       WAIT_MACRO
       break;
     } else if (playerGuess < number) {
       blit(upArrow);
+      delay(100);
       WAIT_MACRO
     } else if (playerGuess > number) {
       blit(downArrow);
+      delay(100);
       WAIT_MACRO
     }
   }
@@ -933,11 +936,48 @@ void calculator() { // the heck daniel that's not even a game. Although, accordi
   int num2 = 0;
   double result = 0;
   int operation = 0;
+  int joyState = 0;
+  int lastJoyState = 0;
+  bool buttonState = false;
+  bool lastButtonState = false;
+  
   
   bool flag = false;
   while (!flag) {
-    //TODO handle input
-    printDigits(num1);
+      lastJoyState = joyState;
+      lastButtonState = buttonState;
+      printDigits(num1);
+
+      // handle inputs
+      joyState = analogRead(yPin);
+      if (joyState > 800) {
+        joyState = 1;
+      } else if (joyState < 200) {
+        joyState = -1;
+      } else {
+        joyState = 0;
+      }
+
+      // handle inc/dec
+      if (joyState == 1 && lastJoyState != 1) {
+        num1 += 1;
+      } else if (joyState == -1 && lastJoyState != -1) {
+        num1 -= 1;
+      }
+
+      // wrap inputs
+      if (num1 < 0) {
+        num1 = 99;
+      } else if (num1 > 99) {
+        num1 = 0;
+      }
+
+      // handle guess
+      buttonState = !digitalRead(buttonPin);
+      if (buttonState && !lastButtonState) {
+        flag = true;
+      }
+      delay(50);
   }
 
   flag = false;
@@ -969,7 +1009,7 @@ void calculator() { // the heck daniel that's not even a game. Although, accordi
   printDigits(result);
 }
 
-// DONE
+// DONE and tested
 void coinFlip() { // yeah this isn't a game so what deal with it
   byte heads[8] = {
     B00111100,
@@ -991,8 +1031,14 @@ void coinFlip() { // yeah this isn't a game so what deal with it
     B01000010,
     B00111100,
   };
-  int speed = 500;
-  bool resultIsHeads = random(1);
+  int speed = 100;
+  bool resultIsHeads;
+  if (random(10) % 2 == 0) {
+    resultIsHeads = false;
+  } else {
+    resultIsHeads = true;
+  }
+
   for (int i = 0; i < 20; i++) {
     if (resultIsHeads) {
       blit(heads);
@@ -1002,10 +1048,10 @@ void coinFlip() { // yeah this isn't a game so what deal with it
     resultIsHeads = !resultIsHeads;
 
     delay(speed);
-    if (i == 10) {
+    if (i == 15) {
       speed = 500;
-    } else if (i == 5) {
-      speed = 800;
+    } else if (i == 10) {
+      speed = 300;
     }
   }
   WAIT_MACRO
@@ -1157,11 +1203,13 @@ void tron() {
   byte field[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   int playerX = 0;
   int pXvel = 1;
-  int pYvel, playerY = 0;
+  int pYvel = 0;
+  int playerY = 4;
 
   int cpuX = 7; // start opposite player
   int cXvel = -1;
-  int cYvel, cpuY = 0;
+  int cYvel = 0;
+  int cpuY = 4;
 
   int xState = 0;
   int lastXState = 0;
@@ -1170,12 +1218,14 @@ void tron() {
 
   unsigned long now = 0;
   unsigned long lastTime = 0;
+  bool blinkState = false;
 
   bool over = false;
   while (!over) {
+    now = millis();
     lastXState = xState;
     lastYState = yState;
-
+    
     xState = analogRead(xPin);
     yState = analogRead(yPin);
 
@@ -1195,30 +1245,39 @@ void tron() {
       yState = 0;
     }
 
-    pXvel = clamp(xState, -1, 1);
-    pYvel = clamp(yState, -1, 1);
+    if (now - lastTime > 400) {
+      lastTime = now;
+      pXvel = clamp(xState, -1, 1);
+      pYvel = clamp(yState, -1, 1);
 
-    playerX += pXvel;
-    playerY += pYvel;
+      playerX += pXvel;
+      playerY += pYvel;
 
-    for (int i = 0; i < 8; i++) {
-      //TODO handle AI
+      for (int i = 0; i < 8; i++) {
+        //TODO handle AI
+      }
+      
+      cpuX += cXvel;
+      cpuY += cYvel;
+
+      blit(field);
+      //if (bitRead(field[playerY], byteToXY(playerX))) { // player collision
+      //  over = true;
+      //  blit(lose);
+      //  delay(100);
+      //  WAIT_MACRO
+      //} else if (bitRead(field[cpuY], cpuX)) { // computer collision
+      //  over = true;
+      //  blit(win);
+      //  delay(100);
+      //  WAIT_MACRO
+      //}
+      //bitSet(field[playerY], playerX);
+      //bitSet(field[cpuY], cpuX);
+      matrix.setLed(0, playerY, playerX, 1);
     }
-    
-    cpuX += cXvel;
-    cpuY += cYvel;
 
-    //TODO make updates only happen once every X seconds
 
-    if (bitRead(field[playerY], byteToXY(playerX))) { // player collision
-      over = true;
-      blit(lose);
-      WAIT_MACRO
-    } else if (bitRead(field[cpuY], cpuX)) { // computer collision
-      over = true;
-      blit(win);
-      WAIT_MACRO
-    }
   }
 }
 
@@ -1280,6 +1339,8 @@ void bowling() {
   }
 
   //TODO make ball bigger
+  //TODO handle animation
+  //TODO handle physics
   //round();
 
 }
