@@ -1,8 +1,8 @@
 {
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
-    "sketch": "matrixGame.ino",
+    "sketch": "matrixGame\\matrixGame.ino",
     "programmer": "AVR ISP",
     "port": "COM3",
-    "output":"C:\\Users\\BROWN_~1\\AppData\\Local\\Temp\\arduino_build\\"
+    "output": "C:\\Users\\isasq\\AppData\\Local\\Temp\\arduino_build\\"
 }
