@@ -35,12 +35,12 @@ private:
     //  we can always delete it later
 
 public:
-    PongGame(/* args */);
+    PongGame(LEDControl screen);
     ~PongGame();
-    bool Loop();
+    bool Loop(double stick_x, double stick_y);
 };
 
-PongGame::PongGame(/* args */)
+PongGame::PongGame(LEDControl screen)
 {
 }
 
@@ -49,21 +49,64 @@ PongGame::~PongGame()
 }
 
 // return true if win, false if lose
-bool PongGame::Loop() {
+bool PongGame::Loop(double stick_x, double stick_y) {
+    // check and update 'cooldown' flags
+    //XXX actually do we even need the flags though? if we just mark down the last time something moved then if the time interval between that and now
+    //    is large enough then we're good to go because we're going to be calculating that interval every loop anyways unless nobody moves at all
+    //    but who is going to not move at all? the cycles we need are the ones where somebody moves anyways so we ought to get rid of flags
+    //    or make them into can_player_move because right now the FLAGS AREN'T EVEN DOING ANYTHING DANIEL YOU DUMB PIECE OF CRAP
+    if (player_moved && enoughTimeHasPassed) {
+        player_moved = false;
+    }
+
+    if (cpu_moved && enoughTimeHasPassed) {
+        cpu_moved = false;
+    }
+
+    if (ball_moved && enoughTimeHasPassed) {
+        ball_moved = false;
+    }
+
+
     // process input
     // if up and not at upper bound: move 1 up
+    if (up && player_x < upper_bound) { // need to sub 1???
+        player_x += 1;
+        player_moved = true;
+
     // elif down and not at lower bound: move 1 down
-    // has a cooldown for movement so it can't move once every main loop iteration
+    } else if (down && player_x > lower_bound) {
+        player_x -= 1;
+        player_moved = true;
+    }
 
     // ai input
     // if ball is up: move up
+    if (ball_x > cpu_x) {
+        if (cpu_x < upper_bound) {
+            cpu_x += 1;
+            cpu_moved = true;
+        }
+
     // if ball is down: move down
-    // but it has a cooldown for each movement so it can't move 1 every cycle
+    } else if (ball_x < cpu_x) {
+        if (cpu_x < lower_bound) {
+            cpu_x -= 1;
+            cpu_moved = true;
+        }
+    }
 
     // ball update
-    // x += x_vel
-    // y += y_vel
+    ball_x += x_vel;
+    ball_y += y_vel;
+
+    //FIXME do we want to do boundary checking before or after position update
+    //      probably want to do it after. . . need to subtract 1 from upper and/or lower bounds
+    //      so changes take effect while the ball is still on the screen?
     // if upper bound > y > lower bound: y_vel *= -1
+    if (ball_y > upper_bound || ball_y < lower_bound) {
+        ball_y *= -1;
+    }
     
     // collision
     //TODO
@@ -73,21 +116,41 @@ bool PongGame::Loop() {
 
     // win condition
     // if x < left bound: CPU_SCORE += 1
-    // display happy screen followed by player score
+    if (ball_x < left_bound) {
+        cpu_score += 1;
+        // display sad screen followed by CPU score
+        //TODO make sad screen function
+        // not sure how we'd access that from here but
+        // oh shoot we can't access any of the draw functions either. . .
+        // unless we make a separate DrawUtil or GameUtil thing that we import. . .
+
+        reset_ball = true;
 
     // elif x > right bound: player score += 1
-    // display sad screen followed by CPU score
-    
+    } else if (ball_x > right_bound) {
+        player_score += 1;
+        // display happy screen followed by player score
+
+        reset_ball = true;
+
+    }
+
     // if CPU_SCORE > 10 (limit changes with difficulty, assuming we're actually implementing difficulty)
-    //      return false;
+    if (cpu_score > 10) {
+        return false;
+
     // elif player score > 10:
-    //      return true;
+    } else if (player_score) {
+        return true;
+    }
 
+    if (reset_ball) {
+        ball_x = 4; // I think 4 is good idk
+        ball_y = 4; 
 
-    // x = 4
-    // y = 4
-    // x_vel = random()
-    // y_vel = random()
+        x_vel = random();
+        y_vel = random();
+    }
 
     // update display
     // draw paddles()
