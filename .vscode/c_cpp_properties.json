@@ -19,11 +19,13 @@
         },
         {
             "name": "config_name",
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "",
             "compilerArgs": [],
             "intelliSenseMode": "gcc-x64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\isasq\\Documents\\Arduino\\libraries",
+                "C:/Users/isasq/Documents/Arduino/libraries/LedControl/src"
             ],
             "forcedInclude": [],
             "cStandard": "c11",
