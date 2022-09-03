@@ -12,11 +12,14 @@ class DinoGame
 {
 private:
     int score;
-    bool jumping;
 
     int pos;
     int vel;
     int accel;
+
+    bool jumping;
+    bool on_ground;
+
 public:
     DinoGame(/* args */);
     ~DinoGame();
@@ -40,7 +43,7 @@ bool DinoGame::Loop(double stick_x, double stick_y) {
     if (up || click) {
         if (on_ground) {
             jumping = true;
-            accel = 20
+            accel = 30;
         }
     }
 
@@ -50,15 +53,36 @@ bool DinoGame::Loop(double stick_x, double stick_y) {
     }
 
     if (speedFlag) {
-        vel += accel
-        pos += vel
+        if (!on_ground) {
+            accel = -10;
+        }
+
+        vel += accel;
+        pos += vel;
 
         if (pos < 0) {
-            pos = 0
-            vel = 0
-            accel = 0
+            pos = 0;
+            vel = 0;
+            accel = 0;
+
+            on_ground = true;
+            jumping = false;
+        } else if (pos > 0) {
+            on_ground = false;
         }
     }
+
+    // generate random obstacles
+    //TODO
+
+    // handle obstacle collision
+    //TODO
+
+    // handle flags so we don't move faster than the eye can see
+    //TODO
+
+    // handle scoring and speeding up with time
+    //TODO
 
     return false;
 }
