@@ -30,7 +30,8 @@ bool BlockStack::Loop() {
     
     // update motion
 
-    if (delayFlag) {        if (bitRead(tower, byteToXY(7))) { // if we've hit the right side
+    if (delayFlag) {
+      if (bitRead(tower, byteToXY(7))) { // if we've hit the right side
             direction *= -1;
         } else if (bitRead(tower, byteToXY(0))) { // if we've hit the left side
             direction *= -1;
