@@ -1,14 +1,14 @@
-class PongGame
+class PongGame : public Game
 {
 private:
     // ball pos vars
-    int ball_x;
-    int ball_y;
-    int x_vel;
-    int y_vel;
+    int ball_x = 4;
+    int ball_y = 4;
+    int x_vel = 0;
+    int y_vel = 0;
 
     // limits
-    int upper_bound;
+    int upper_bound; //TODO
     int lower_bound;
     int left_bound;
     int right_bound;
@@ -27,6 +27,8 @@ private:
     bool cpu_moved;
     bool ball_moved;
 
+    bool reset_ball;
+
     // difficulty???
     bool difficulty;
 
@@ -35,13 +37,14 @@ private:
     //  we can always delete it later
 
 public:
-    PongGame(LEDControl screen);
+    LedControl m_screen;
+    PongGame(LedControl screen);
     ~PongGame();
     bool Loop(double stick_x, double stick_y);
 };
 
-PongGame::PongGame(LEDControl screen)
-{
+PongGame::PongGame(LedControl screen) {
+  //m_screen = screen;
 }
 
 PongGame::~PongGame()
