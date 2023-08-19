@@ -203,7 +203,38 @@ void guessingGame() {
     wait();
 }
 
+void wait() {
+    //TODO
+    return;
+}
 
+void blockStack() {
+    // setup
+    int score = 0;
+    int width = 7; // max width of 8 so give us some space to work with
+
+    // initial board state
+    //TODO
+
+    // main game loop
+    while (1) {
+        // handle bouncing from wall to wall
+        //TODO
+
+        // handle button press intput and debounce
+        //TODO
+
+        // handle stacking
+        //TODO
+
+        // handle score
+        //TODO
+    }
+
+    // game is over, display score
+    displayNumber(score);
+    wait();
+}
 
 block stack
 21/blackjack
