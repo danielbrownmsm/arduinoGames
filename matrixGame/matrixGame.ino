@@ -1,23 +1,207 @@
+#include <LedControl.h>
+#include "Config.h"
 
-canyon runner:
- left right movement
- increase speed as go through
- decrease width as go through
- if player collide with wall then end
- show score
- back to menu
+// create the matrix object
+LedControl matrix = LedControl(dinPin, clkPin, csPin, 1); // the '1' is because there's only one matrix
 
-calculator:
- have player select first number (select tens digit, then ones digit)
- have player select operation
- have player select second number
- output result of calculation, rounded/truncated to fit the two digits we have
- if player clicks enter then go to first step, but if player does right stick then set first number to result of calculation and go to operation select
+void setup() {
+    // for debugging purposes
+    #ifdef DEBUG_ON
+    Serial.begin(9600);
+    #endif
 
-guessing game?
- have player select number (similar to calculator)
- then show higher or lower arrows depending on if the number to guess is higher or lower
- rinse and repeat
+    // set the joystick pinmodes
+    pinMode(xPin, INPUT);
+    pinMode(yPin, INPUT);
+
+    // set the button pin to use the internal pullup resistor of the Arduino
+    pinMode(buttonPin, INPUT_PULLUP);
+
+    // set the buzzer to output
+    pinMode(buzzerPin, OUTPUT);
+
+    // gonna be honest don't know what I had these here for
+    // pinMode(13, OUTPUT);
+    // digitalWrite(13, LOW);
+
+    // turn the matrix off
+    matrix.shutdown(0, false); // 0 is adr of matrix, because LedControl can be used to control up to 8 matricies
+
+    // set the LEDs to the lowest brightness setting to prevent drawing too much current
+    // also they're just very bright
+    matrix.setIntensity(0, 0);
+
+    // clear the matrix
+    matrix.clearDisplay(0);
+
+    randomSeed(analogRead(5)); // seed PRNG with a floating pin
+}
+
+void loop() {
+
+}
+
+void displayNumber(int num) {
+    //TODO
+    // implementation should truncate 'num' to an int of 2 digits or something.
+    // maybe a special display like NaN if it's too high?
+
+    byte infinity[8] = { // (infinity symbol)
+        B00000000,
+        B00000000,
+        B01100110,
+        B10011001,
+        B10011001,
+        B01100110,
+        B00000000,
+        B00000000,
+    }
+
+    byte error[8] { // the little 'E' those little calculators display sometimes
+        B00000000,
+        B00000000,
+        B01110000,
+        B01000000,
+        B01100000,
+        B01000000,
+        B01110000,
+        B00000000,
+    }
+
+    return;
+}
+
+void canyonRunner() {
+    // board setup
+    byte board[8] = {
+        B11111111,
+        B11111111,
+        B11111111,
+        B11111111,
+        B11111111,
+        B11111111,
+        B11111111,
+        B11111111,
+    }; // start with a full board and then we'll carve the canyon
+
+    // game setup
+    int score = 0;
+
+
+    // main game loop
+    while (1) {
+        // carve out the canyon
+
+        // handle movement
+        
+        // display board
+
+        // handle collision
+
+        // increase speed
+
+        // increase score
+        score++;
+    }
+
+    // display score
+    displayNumber(score);
+}
+
+enum Operation {
+    ADDITION,
+    SUBTRACTION,
+    MULTIPLICATION,
+    DIVISION
+};
+
+int selectNumber() {
+    // have player select first number (select tens digit, then ones digit)
+    //TODO
+    return 0;
+}
+
+void calculator() {
+    // setup
+    bool quit = false;
+    int numOne = 0;
+    int numTwo = 0;
+    Operation operation;
+
+
+    // main loop
+    while (!quit) {
+        // display the prompt for the 1st number
+        //TODO
+
+        // get the first number
+        numOne = selectNumber();
+
+        // display prompt for operation
+        //TODO
+        //select operation
+        //TODO
+
+        // display prompt for 2nd number
+        //TODO
+
+        // get the second number
+        numTwo = selectNumber();
+
+        if (operation == ADDITION) {
+            displayNumber(numOne + numTwo);
+        } else if (operation == SUBTRACTION) {
+            displayNumber(numOne - numTwo);
+        } else if (operation == MULTIPLICATION) {
+            displayNumber(numOne * numTwo);
+        } else if (operation == DIVISION) {
+            displayNumber(numOne / numTwo);
+        } else {
+            // throw an error or something
+            //TODO
+        }
+
+        // special logic we might do:
+        // if player clicks enter then go to first step, but if player does right stick then set first number to result of calculation and go to operation select
+    }
+}
+
+void guessingGame() {
+    // setup
+    bool guessed = false;
+    int guesses = 0;
+
+    int randNum = random.randint(1, 99);
+    int playerGuess;
+
+    // main game loop
+    while (!guessed) {
+        // have player select a number
+        playerGuess = selectNumber();
+
+        // if the player guessed right
+        if (playerGuess == randNum) {
+            // then the player has won!
+            guessed = true;
+        } else if (playerGuess < randNum) {
+            // increase the score
+            guesses++;
+
+            // display the up arrow to tell the player to guess higher
+            //TODO
+        } else {
+            // increase the score
+            guesses++;
+
+            // display down arrow
+            //TODO
+        }
+    }
+
+    // display the score
+    displayNumber(guesses);
+    wait();
+}
 
 
 
