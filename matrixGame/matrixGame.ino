@@ -55,7 +55,7 @@ void displayNumber(int num) {
         B01100110,
         B00000000,
         B00000000,
-    }
+    };
 
     byte error[8] { // the little 'E' those little calculators display sometimes
         B00000000,
@@ -66,7 +66,7 @@ void displayNumber(int num) {
         B01000000,
         B01110000,
         B00000000,
-    }
+    };
 
     return;
 }
@@ -171,7 +171,7 @@ void guessingGame() {
     bool guessed = false;
     int guesses = 0;
 
-    int randNum = random.randint(1, 99);
+    int randNum = (int) random(1, 99); // because random returns a long
     int playerGuess;
 
     // main game loop
@@ -236,7 +236,6 @@ void blockStack() {
     wait();
 }
 
-block stack
 21/blackjack
 coin flip
 tron
