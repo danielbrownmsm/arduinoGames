@@ -236,7 +236,65 @@ void blockStack() {
     wait();
 }
 
-21/blackjack
+void blackjack() {
+    // game setup
+    //TODO
+    bool gameOver = false;
+    bool playerStay = false;
+    bool computerStay = false;
+
+    // main game loop
+    while (1) {
+        // deal starting hand for player
+        int playerHand = 0;
+        playerHand += random(1, 10); // two cards between Ace and King, Ace being one and JQK being 10
+        playerHand += random(1, 10);
+
+        // deal starting hand for computer
+        int computerHand = 0;
+        computerHand += random(1, 10); // two cards between Ace and King, Ace being one and JQK being 10
+        computerHand += random(1, 10);
+
+        // loop inside a loop:
+        while (!gameOver) {
+            // reset the hit or stay counters
+            bool playerStay = false;
+            bool computerStay = false;
+
+            // player's turn, hit or stay?
+            //TODO
+
+            // check if player busted
+            //TODO
+
+            // computer's turn, hit or stay?
+            //TODO this doesn't account for if the computer should hit multiple times, or that there are only so many
+            // copies of each card. nor does it do that for the player.
+            if (computerHand < 17) { // if we have less than 17 total
+                computerHand += random(1, 10); // then hit
+                computerStay = false;
+            } else { // otherwise
+                // stay
+                computerStay = true;
+            }
+
+            // check if computer busted
+            if (computerHand > 21) {
+                gameOver = true;
+                //TODO
+            }
+
+            // check if everyone has stayed this round
+            if (computerStay && playerStay) {
+                // and if everyone has, then see who wins the round
+                gameOver = true;
+
+                //TODO
+            }            
+        }
+    }
+}
+
 coin flip
 tron
 battleship?
