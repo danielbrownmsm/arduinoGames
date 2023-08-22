@@ -295,7 +295,26 @@ void blackjack() {
     }
 }
 
-coin flip
+void coinFlip() {
+    // game loop
+    while (1) {
+        int heads = random(0, 1);
+
+        // if the coin landed on heads
+        if (heads) {
+            // show heads and wait
+            display(heads_icon);
+
+            wait();
+        } else {
+            // otherwise it was tails
+            display(tails_icon);
+
+            wait();
+        }
+    }
+}
+
 tron
 battleship?
 google dino game
