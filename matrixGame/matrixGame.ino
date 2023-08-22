@@ -315,43 +315,38 @@ void coinFlip() {
     }
 }
 
-tron
-battleship?
-google dino game
-tetris
-options menu
-reaction timer
-pinball
-snake
-paint
-yahtzee?
-timer?????
-poker?
-pokemon???
-unblock me
-tic-tac-toe (knoghts and crosses)
-breakout (Atari)
-microtransactions
-John Conways GoL
-maze
-RPG???
-some music making thing
-support for writing programs on the console
-pong
-flappy bird
-crossy road
-simon says (memory game)
-a screensaver (why the heck would you want this tho?)
-rythym game (ex beatsaber)
-racing game (obviously 2D)
-some random dice game (what is that suppposed to mean? idk)
-bowling
-movies (stored in EEPROM) (how and why the heck? it's literally an 8x8 matrix and all one color with only basic sound support. If you really want to waste your time doing this then go ahead but until then)
-a platformer
-aliens (galaga)
-a clicker
-temple-run-but-not
-connect-4
-checkers???
-gravity-guy-but-not?
-party games (the heck does that mean?)
+ * tron-style (either on the static 8x8 display or with a top-down scrolling version)
+ * battleship?
+ * google dino game
+ * tetris
+ * reaction timer
+ * pinball
+ * snake
+ * paint
+ * yahtzee
+ * stopwatch
+ * texas hold-em (although that might be a little too complicated to implement, or at least for the player to play)
+ * unblock me (except switching blocks might be hard, unless we click to switch and blink the current block)
+ * tic-tac-toe (knoghts and crosses)
+ * breakout (Atari)
+ * John Conways GoL
+ * maze (either static or scrolling)
+ * RPG maze (there's some sketch on the creative hub that's basically this)
+ * some music making thing (like that one google doodle/PixlBytes)
+ * support for writing programs on the console (which is only funny because it's stupid)
+ * pong
+ * flappy bird
+ * crossy road
+ * simon says (memory game)
+ * the DVD screensaver thingy
+ * rythym game (like pianotiles or that one hatsune miku game)
+ * racing game (obviously 2D)
+ * bowling, which could be interesting
+ * heck, any kind of sports or Wii Sports game. cup pong, golf, baseball, boxing, you name it
+ * a 2d platformer
+ * aliens (galaga)
+ * a clicker (only problem is we're limited to 99, unless we want to display it in binary. you can almost make 2-pixel numbers work so we could go up to 999 but it's not pretty)'
+ * temple run (/subway surfers/minion rush/whatever)
+ * connect-4
+ * checkers
+ * gravity-guy
